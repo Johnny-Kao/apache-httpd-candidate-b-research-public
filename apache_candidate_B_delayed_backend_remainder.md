@@ -1,7 +1,7 @@
 # Apache HTTP Server Candidate B
 ## Delayed bytes after response framing -> pooled backend connection reuse
 
-Status: **high-priority hypothesis / not yet reproduced**
+Status: **mechanics reproduced with an explicit tenant-A/tenant-B boundary; security triage pending**
 
 Scope constraints:
 
@@ -68,7 +68,17 @@ Potential consequence if genuinely controllable:
 - cache poisoning
 - response mix-up between frontend requests
 
-This is **not yet reproduced**.
+The localhost harness now reproduces the mechanics with an explicit
+multi-tenant model: tenant A controls only `attacker_input` in its request,
+tenant B is a separate frontend client, and tenant B's request and legitimate
+response are fixed and independent. Apache's pooled backend socket is reused
+and A's delayed remainder is observed in B's response path, while the
+connection-close and `proxy-nokeepalive` controls remove the effect.
+
+This establishes the proposed cross-tenant ownership failure in the test
+model. It does not by itself establish that a production tenant can cause a
+malformed backend remainder; that application/backend trigger remains the
+main item for Apache security triage.
 
 Also note the exploitability requirement:
 

@@ -89,14 +89,16 @@ ProxyPassReverse / http://127.0.0.1:{backend.port}/
             else:
                 raise TimeoutError("Apache did not listen on 127.0.0.1:18080")
             with client:
-                client.sendall(b"GET /a?attacker_input=POISON HTTP/1.1\r\nHost: attacker\r\nConnection: keep-alive\r\n\r\n")
+                # The attacker controls only tenant A's application input.
+                # Tenant B is a separate frontend client below.
+                client.sendall(b"GET /tenant-a/a?attacker_input=POISON HTTP/1.1\r\nHost: tenant-a.example\r\nConnection: keep-alive\r\n\r\n")
                 response_a = read_response(client)
 
             # B is a separate frontend client. Its request and legitimate
             # backend response are fixed and independent of A's payload.
             victim = socket.create_connection(("127.0.0.1", 18080), timeout=2)
             with victim:
-                victim.sendall(b"GET /b HTTP/1.1\r\nHost: victim\r\nConnection: close\r\n\r\n")
+                victim.sendall(b"GET /tenant-b/b HTTP/1.1\r\nHost: tenant-b.example\r\nConnection: close\r\n\r\n")
                 response_b = read_response(victim)
             thread.join(timeout=2)
             if b"Content-Length: 2" not in response_a or not response_a.endswith(b"OK"):

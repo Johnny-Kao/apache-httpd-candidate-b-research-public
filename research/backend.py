@@ -54,6 +54,9 @@ class Backend:
         self.log("accept", connection=connection_id)
         try:
             request_a = self.recv_request(conn, connection_id, 1)
+            if b"GET /tenant-a/a?attacker_input=POISON HTTP/1.1" not in request_a:
+                raise AssertionError(f"unexpected tenant A request: {request_a!r}")
+            self.log("tenant-A-input", value="POISON")
             a_headers = b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\n"
             if self.test_case == "close":
                 a_headers += b"Connection: close\r\n"
@@ -64,7 +67,10 @@ class Backend:
                 connection_id = f"{address[0]}:{address[1]}"
                 self.connections.append(connection_id)
                 self.log("accept", connection=connection_id)
-            self.recv_request(conn, connection_id, 2)
+            request_b = self.recv_request(conn, connection_id, 2)
+            if b"GET /tenant-b/b HTTP/1.1" not in request_b or b"tenant-b.example" not in request_b:
+                raise AssertionError(f"unexpected tenant B request: {request_b!r}")
+            self.log("tenant-B-request", value="fixed-independent")
             self.log("phase", name="B-request-observed", connection=connection_id)
             if self.test_case == "positive":
                 marker = self.attacker_marker(request_a)
