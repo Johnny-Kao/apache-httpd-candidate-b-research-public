@@ -1,0 +1,157 @@
+<!DOCTYPE html SYSTEM "about:legacy-compat">
+<html lang="tr"><head><META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<!--
+        XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+              This file is generated from xml source: DO NOT EDIT
+        XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      -->
+<title>Dosya Tanıtıcı Sınırları - Apache HTTP Sunucusu S&uuml;r&uuml;m 2.5</title>
+<link href="../style/css/manual.css" rel="stylesheet" media="all" type="text/css" title="Main stylesheet">
+<link href="../style/css/manual-loose-100pc.css" rel="alternate stylesheet" media="all" type="text/css" title="No Sidebar - Default font size">
+<link href="../style/css/manual-print.css" rel="stylesheet" media="print" type="text/css"><link rel="stylesheet" type="text/css" href="../style/css/prettify.css">
+<script src="../style/scripts/prettify.min.js">
+</script>
+
+<link href="../images/favicon.png" rel="shortcut icon"></head>
+<body id="manual-page" class="no-sidebar"><div id="page-header">
+<p class="menu"><a href="../mod/">Mod&uuml;ller</a> | <a href="../mod/quickreference.html">Y&ouml;nergeler</a> | <a href="https://cwiki.apache.org/confluence/display/httpd/FAQ">SSS</a> | <a href="../glossary.html">Terimler</a> | <a href="../sitemap.html">Site Haritası</a> | <a href="https://bz.apache.org/bugzilla/enter_bug.cgi?product=Apache%20httpd-2">Report a bug</a></p>
+<p class="apache">Apache HTTP Sunucusu S&uuml;r&uuml;m 2.5</p>
+<img alt="" src="../images/feather.png"></div>
+<div class="up"><a href="./"><img title="<-" alt="<-" src="../images/left.gif"></a></div>
+<div id="path">
+<a href="https://www.apache.org/">Apache</a> &gt; <a href="https://httpd.apache.org/">HTTP Sunucusu</a> &gt; <a href="https://httpd.apache.org/docs/">Belgeleme</a> &gt; <a href="../">S&uuml;r&uuml;m 2.5</a> &gt; <a href="./">Sanal Konaklar</a></div><div id="page-content"><div id="preamble"><h1>Dosya Tanıtıcı Sınırları</h1>
+<button aria-label="Toggle language list" class="lang-toggle"><svg xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke="currentColor" fill="none" viewBox="0 0 24 24" height="16" width="16"><circle r="10" cy="12" cx="12"/><line y2="12" x2="22" y1="12" x1="2"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></button>
+<div class="toplang">
+<p><span>Mevcut Diller: </span><a href="../en/vhosts/fd-limits.html" hreflang="en" rel="alternate" title="English">&nbsp;en&nbsp;</a> |
+<a href="../fr/vhosts/fd-limits.html" hreflang="fr" rel="alternate" title="Fran&ccedil;ais">&nbsp;fr&nbsp;</a> |
+<a href="../ja/vhosts/fd-limits.html" hreflang="ja" rel="alternate" title="Japanese">&nbsp;ja&nbsp;</a> |
+<a href="../ko/vhosts/fd-limits.html" hreflang="ko" rel="alternate" title="Korean">&nbsp;ko&nbsp;</a> |
+<a href="../tr/vhosts/fd-limits.html" title="T&uuml;rk&ccedil;e">&nbsp;tr&nbsp;</a></p>
+</div>
+<div class="outofdate">Bu &ccedil;eviri g&uuml;ncel olmayabilir. Son değişiklikler i&ccedil;in İngilizce s&uuml;r&uuml;m ge&ccedil;erlidir.</div>
+
+
+    <p>&Ccedil;ok b&uuml;y&uuml;k sayıda sanal konak kullanıyorsanız ve bunların her biri i&ccedil;in
+      ayrı g&uuml;nl&uuml;k kayıtları tutuyorsanız, Apache dosya tanıtıcılarını
+      t&uuml;ketebilir. Apache tarafından, dahili olarak 10-20 dosya tanıtıcıya ek
+      olarak her hata g&uuml;nl&uuml;ğ&uuml; i&ccedil;in bir ve her diğer g&uuml;nl&uuml;k kaydı i&ccedil;in bir dosya
+      tanıcı kullanılır. Unix işletim sisteminde dosya tanıtıcıların sayısı
+      s&uuml;re&ccedil; başına 64 taneyle sınırlıdır ve gerekirse donanıma bağlı olarak
+      arttırılabilir.</p>
+
+    <p>Apache gerektiğinde bu sınırı kendisi arttırmaya &ccedil;alışırsa da bu her
+      zaman m&uuml;mk&uuml;n olmaz. Ş&ouml;yle ki:</p>
+
+    <ol>
+      <li>Sisteminiz <code>setrlimit()</code> sistem &ccedil;ağrısını
+        sağlamıyordur.</li>
+
+      <li>Sisteminizde <code>setrlimit(RLIMIT_NOFILE)</code> &ccedil;ağrısı hi&ccedil;bir işe
+        yaramıyordur (&ouml;rneğin, Solaris 2.3).</li>
+
+      <li>Dosya tanıtıcılarının sayısı donanıma bağlı olarak daha fazla
+        arttırılamıyordur.</li>
+
+      <li>Sisteminiz dosya tanıtıcı sayısını başka sınırlara bağlı kılmıştır:
+        &ouml;rneğin stdio akımları ile ilgili sınır, dosya tanıtıcı sayısının
+        256'nın altında ollmasını gerektiriyordur (Solaris 2).</li>
+    </ol>
+
+    <p>B&ouml;yle sorunlar karşısında yapabilecekleriniz:</p>
+
+    <ul><li>Ana g&uuml;nl&uuml;k dosyaları hari&ccedil;, <code class="directive"><a href="../mod/core.html#virtualhost">&lt;VirtualHost&gt;</a></code> b&ouml;l&uuml;mlerinde g&uuml;nl&uuml;k dosyası
+      belirtmeyerek g&uuml;nl&uuml;k dosyası sayısını d&uuml;ş&uuml;r&uuml;rs&uuml;n&uuml;z. (Bunun nasıl
+      yapılacağını &ouml;ğrenmek i&ccedil;in <a href="#splitlogs">G&uuml;nl&uuml;k kayıtlarının
+      ayrıştırılması</a> b&ouml;l&uuml;m&uuml;ne bakınız.)</li>
+
+      <li>Sisteminizde serbest dosya tanıtıcı sayısı 1-2 civarına d&uuml;şerse
+        Apache'yi aşağıdaki gibi bir betikle yeniden &ccedil;alıştırarak dosya
+        tanıtıcı sayısını arttırabilirsiniz:
+
+        <div class="example"><p><code>
+          <code>#!/bin/sh<br>
+           ulimit -S -n 100<br>
+           exec httpd</code>
+        </code></p></div>
+      </li>
+    </ul>
+
+</div>
+<div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="splitlogs">G&uuml;nl&uuml;k kayıtlarının ayrıştırılması <a title="Permanent link" href="#splitlogs" class="permalink">&para;</a></h2>
+
+    <p>G&uuml;nl&uuml;k dosyalarını &ccedil;ok sayıda sanal konak i&ccedil;in ortak olarak
+      kullanıyorsanız, sanal konaklar i&ccedil;in istatistiksel &ccedil;&ouml;z&uuml;mlemeler yapmak
+      amacıyla sırası geldiğinde bunları ayrıştırabilirsiniz. Bu işlem aşağıda
+      anlatıldığı gibi yapılabilir.</p>
+
+    <p>İlk iş olarak, sanal konak bilgilerini g&uuml;nl&uuml;k girdilerine eklemeniz
+      gerekir. Bu işlem, <code class="directive"><a href="../mod/mod_log_config.html#logformat">LogFormat</a></code> y&ouml;nergesi ve
+      <code>%v</code> bi&ccedil;em değişkeni ile yapılabilir. G&uuml;nl&uuml;k girdisi bi&ccedil;em
+      dizgesinin başına bunu ekleyiniz:</p>
+
+    <div class="example"><p><code>
+    LogFormat "%v %h %l %u %t \"%r\" %&gt;s %b" vhost<br>
+    CustomLog logs/multiple_vhost_log vhost
+    </code></p></div>
+
+    <p>Bu yapılandırma ile her g&uuml;nl&uuml;k kaydının başında sanal konağın
+      <code class="directive"><a href="../mod/core.html#servername">ServerName</a></code> y&ouml;nergesine belirtilen
+      ismi eklenir. (G&uuml;nl&uuml;k dosyalarınızın kişiselleştirilmesi ile ilgili daha
+      fazla bilgi i&ccedil;in <a href="../mod/mod_log_config.html#formats">G&uuml;nl&uuml;k
+      Girdilerinin Kişiselleştirilmesi</a> konusuna bakınız.)</p>
+
+    <p>G&uuml;nl&uuml;k dosyanızdaki kayıtları bileşenlere g&ouml;re gruplamak isterseniz
+      <code><a href="../programs/other.html">split-logfile</a></code>
+      programını kullanabilirsiniz. Bu programı Apache dağıtımının
+      <code>support</code> dizininde bulabilirsiniz.</p>
+
+    <p>Programı aşağıdaki gibi &ccedil;alıştırın:</p>
+
+    <div class="example"><p><code>
+    split-logfile &lt; /logs/multiple_vhost_log
+    </code></p></div>
+
+    <p>Bu programı sanal konaklar i&ccedil;in tuttuğunuz g&uuml;nl&uuml;k dosyasının ismini
+      arg&uuml;man olarak belirterek &ccedil;alıştırdığınızda o dosyadaki kayıtlardan her
+      sanal konak i&ccedil;in ayrı bir g&uuml;nl&uuml;k dosyası
+      (<code><em>konakadı</em>.log</code>) &uuml;retilir.</p>
+
+</div></div>
+<div class="bottomlang">
+<p><span>Mevcut Diller: </span><a href="../en/vhosts/fd-limits.html" hreflang="en" rel="alternate" title="English">&nbsp;en&nbsp;</a> |
+<a href="../fr/vhosts/fd-limits.html" hreflang="fr" rel="alternate" title="Fran&ccedil;ais">&nbsp;fr&nbsp;</a> |
+<a href="../ja/vhosts/fd-limits.html" hreflang="ja" rel="alternate" title="Japanese">&nbsp;ja&nbsp;</a> |
+<a href="../ko/vhosts/fd-limits.html" hreflang="ko" rel="alternate" title="Korean">&nbsp;ko&nbsp;</a> |
+<a href="../tr/vhosts/fd-limits.html" title="T&uuml;rk&ccedil;e">&nbsp;tr&nbsp;</a></p>
+</div><div id="footer">
+<p class="apache">Copyright 2026 The Apache Software Foundation.<br><a href="https://www.apache.org/licenses/LICENSE-2.0">Apache License, Version 2.0</a> adı altında lisanslıdır.</p>
+<p class="menu"><a href="../mod/">Mod&uuml;ller</a> | <a href="../mod/quickreference.html">Y&ouml;nergeler</a> | <a href="https://cwiki.apache.org/confluence/display/httpd/FAQ">SSS</a> | <a href="../glossary.html">Terimler</a> | <a href="../sitemap.html">Site Haritası</a> | <a href="https://bz.apache.org/bugzilla/enter_bug.cgi?product=Apache%20httpd-2">Report a bug</a></p></div><script><!--//--><![CDATA[//><!--
+if (typeof(prettyPrint) !== 'undefined') {
+    prettyPrint();
+}
+var langToggle = document.querySelector('.lang-toggle');
+var topLang = document.querySelector('.toplang');
+if (langToggle && topLang) {
+    langToggle.addEventListener('click', function() { topLang.classList.toggle('open'); });
+}
+var qv = document.getElementById('quickview');
+if (qv) {
+    document.body.appendChild(qv);
+    var qvBtn = document.createElement('button');
+    qvBtn.className = 'qv-toggle';
+    qvBtn.setAttribute('aria-label', 'Toggle page navigation');
+    qvBtn.innerHTML = '&#9776;';
+    document.body.appendChild(qvBtn);
+    qvBtn.addEventListener('click', function() {
+        var isOpen = qv.classList.toggle('open');
+        if (isOpen) {
+            qv.style.top = window.scrollY + 10 + 'px';
+        }
+    });
+    window.addEventListener('scroll', function() { qv.classList.remove('open'); });
+}
+//--><!]]></script>
+</body></html>

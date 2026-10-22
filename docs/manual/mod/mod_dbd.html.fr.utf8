@@ -1,0 +1,422 @@
+<!DOCTYPE html SYSTEM "about:legacy-compat">
+<html lang="fr"><head><META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<!--
+        XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+              This file is generated from xml source: DO NOT EDIT
+        XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      -->
+<title>mod_dbd - Serveur HTTP Apache Version 2.5</title>
+<link href="../style/css/manual.css" rel="stylesheet" media="all" type="text/css" title="Main stylesheet">
+<link href="../style/css/manual-loose-100pc.css" rel="alternate stylesheet" media="all" type="text/css" title="No Sidebar - Default font size">
+<link href="../style/css/manual-print.css" rel="stylesheet" media="print" type="text/css"><link rel="stylesheet" type="text/css" href="../style/css/prettify.css">
+<script src="../style/scripts/prettify.min.js">
+</script>
+
+<link href="../images/favicon.png" rel="shortcut icon"></head>
+<body>
+<div id="page-header">
+<p class="menu"><a href="../mod/">Modules</a> | <a href="../mod/quickreference.html">Directives</a> | <a href="https://cwiki.apache.org/confluence/display/httpd/FAQ">FAQ</a> | <a href="../glossary.html">Glossaire</a> | <a href="../sitemap.html">Plan du site</a> | <a href="https://bz.apache.org/bugzilla/enter_bug.cgi?product=Apache%20httpd-2">Signaler un bug</a></p>
+<p class="apache">Serveur HTTP Apache Version 2.5</p>
+<img alt="" src="../images/feather.png"></div>
+<div class="up"><a href="./"><img title="<-" alt="<-" src="../images/left.gif"></a></div>
+<div id="path">
+<a href="https://www.apache.org/">Apache</a> &gt; <a href="https://httpd.apache.org/">Serveur HTTP</a> &gt; <a href="https://httpd.apache.org/docs/">Documentation</a> &gt; <a href="../">Version 2.5</a> &gt; <a href="./">Modules</a></div>
+<div id="page-content">
+<div id="preamble"><h1>Module Apache mod_dbd</h1>
+<button aria-label="Toggle language list" class="lang-toggle"><svg xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke="currentColor" fill="none" viewBox="0 0 24 24" height="16" width="16"><circle r="10" cy="12" cx="12"/><line y2="12" x2="22" y1="12" x1="2"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></button>
+<div class="toplang">
+<p><span>Langues Disponibles: </span><a href="../en/mod/mod_dbd.html" hreflang="en" rel="alternate" title="English">&nbsp;en&nbsp;</a> |
+<a href="../fr/mod/mod_dbd.html" title="Fran&ccedil;ais">&nbsp;fr&nbsp;</a></p>
+</div>
+<table class="module"><tr><th><a href="module-dict.html#Description">Description:</a></th><td>Gestion des connexions &agrave; une base de donn&eacute;es SQL</td></tr>
+<tr><th><a href="module-dict.html#Status">Statut:</a></th><td>Extension</td></tr>
+<tr><th><a href="module-dict.html#ModuleIdentifier">Identificateur&nbsp;de&nbsp;Module:</a></th><td>dbd_module</td></tr>
+<tr><th><a href="module-dict.html#SourceFile">Fichier&nbsp;Source:</a></th><td>mod_dbd.c</td></tr></table>
+<h3>Sommaire</h3>
+
+    <p>Le module <code class="module"><a href="../mod/mod_dbd.html">mod_dbd</a></code> g&egrave;re les connexions
+    &agrave; une base de donn&eacute;es SQL via <a class="glossarylink" href="../glossary.html#apr" title="voir glossaire">APR</a>. Il permet
+    aux modules qui requi&egrave;rent des fonctions li&eacute;es aux bases de donn&eacute;es
+    SQL de se connecter &agrave; une base de donn&eacute;es &agrave; la demande, et s'efforce
+    de conf&eacute;rer aux bases de donn&eacute;es une efficacit&eacute; et une
+    &eacute;volutivit&eacute; optimales pour les MPMs thread&eacute;s ou non thread&eacute;s. Pour
+    plus de d&eacute;tails, voir le site web <a href="http://apr.apache.org/">APR</a>.
+</p>
+</div>
+<div id="quickview"><h3>Sujets</h3>
+<ul id="topics">
+<li><img alt="" src="../images/down.gif"> <a href="#pooling">Regroupement des connexions</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#connecting">Connexion</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#API">API DBD d'Apache</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#prepared">Requ&ecirc;tes SQL pr&eacute;par&eacute;es</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#security">AVERTISSEMENT DE SECURITE</a></li>
+</ul><h3 class="directives">Directives</h3>
+<ul id="toc">
+<li><img alt="" src="../images/down.gif"> <a href="#dbdexptime">DBDExptime</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#dbdinitsql">DBDInitSQL</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#dbdkeep">DBDKeep</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#dbdmax">DBDMax</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#dbdmin">DBDMin</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#dbdparams">DBDParams</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#dbdpersist">DBDPersist</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#dbdpreparesql">DBDPrepareSQL</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#dbdriver">DBDriver</a></li>
+</ul>
+<h3>Traitement des bugs</h3><ul class="seealso"><li><a href="https://www.apache.org/dist/httpd/CHANGES_2.4">Journal des modifications de httpd</a></li><li><a href="https://bz.apache.org/bugzilla/buglist.cgi?bug_status=__open__&amp;list_id=144532&amp;product=Apache%20httpd-2&amp;query_format=specific&amp;order=changeddate%20DESC%2Cpriority%2Cbug_severity&amp;component=mod_dbd">Probl&egrave;mes connus</a></li><li><a href="https://bz.apache.org/bugzilla/enter_bug.cgi?product=Apache%20httpd-2&amp;component=mod_dbd">Signaler un bug</a></li></ul><h3>Voir aussi</h3>
+<ul class="seealso">
+<li><a href="../misc/password_encryptions.html">Formats des mots de
+passe</a></li>
+</ul></div>
+<div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="pooling">Regroupement des connexions <a title="Lien permanent" href="#pooling" class="permalink">&para;</a></h2>
+    <p>Ce module g&egrave;re de mani&egrave;re optimis&eacute;e en fonction de la plate-forme
+    les connexions aux bases de donn&eacute;es. Sur les plates-formes non
+    thread&eacute;es, il maintient une connexion persistente &agrave; la mani&egrave;re d'un
+    LAMP classique (Linux, Apache, Mysql, Perl/PHP/Python). Sur les
+    plates-formes thread&eacute;es, il maintient un <em>groupe de
+    connexions</em> &agrave; la fois plus &eacute;volutif et plus efficace, comme
+    d&eacute;crit dans <a href="http://www.apachetutor.org/dev/reslist">cet
+    article d'ApacheTutor</a>. Notez que <code class="module"><a href="../mod/mod_dbd.html">mod_dbd</a></code>
+    remplace les modules pr&eacute;sent&eacute;s dans cet article.</p>
+</div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="connecting">Connexion <a title="Lien permanent" href="#connecting" class="permalink">&para;</a></h2>
+
+    <p>Pour vous connecter &agrave; votre base de donn&eacute;es, vous devez sp&eacute;cifier un
+    pilote et des param&egrave;tres de connexion qui diff&egrave;rent selon le moteur de base
+    de donn&eacute;es. Par exemple, pour vous connecter &agrave; mysql, sp&eacute;cifiez ce qui suit
+    :</p>
+
+<pre class="prettyprint lang-config">DBDriver mysql
+DBDParams host=localhost,dbname=pony,user=shetland,pass=appaloosa</pre>
+
+
+    <p>Vous pourrez alors utiliser cette connexion dans de nombreux autres
+    modules comme <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code>, <code class="module"><a href="../mod/mod_authn_dbd.html">mod_authn_dbd</a></code>
+    et <code class="module"><a href="../mod/mod_lua.html">mod_lua</a></code>. Vous trouverez des exemples d'utilisation dans
+    la documentation de ces modules.</p>
+
+    <p>Voir la syntaxe de la directive <code class="directive">DBDParams</code> pour les
+    informations &agrave; fournir dans la cha&icirc;ne de connexion en fonction des
+    diff&eacute;rents pilotes de base de donn&eacute;es support&eacute;s.</p>
+
+</div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="API">API DBD d'Apache <a title="Lien permanent" href="#API" class="permalink">&para;</a></h2>
+    <p><code class="module"><a href="../mod/mod_dbd.html">mod_dbd</a></code> exporte cinq fonctions que d'autres
+    modules pourront utiliser. L'API se pr&eacute;sente comme suit :</p>
+
+    <pre class="prettyprint lang-c">typedef struct {
+    apr_dbd_t *handle;
+    apr_dbd_driver_t *driver;
+    apr_hash_t *prepared;
+} ap_dbd_t;
+
+/* Fonctions export&eacute;es pour acc&eacute;der &agrave; la base de donn&eacute;es */
+
+/* ouvre une connexion qui DEVRA &ecirc;tre explicitement ferm&eacute;e.
+ * Renvoie NULL en cas d'erreur
+ */
+AP_DECLARE(ap_dbd_t*) ap_dbd_open(apr_pool_t*, server_rec*);
+
+/* ferme une connexion ouverte avec ap_dbd_open */
+AP_DECLARE(void) ap_dbd_close(server_rec*, ap_dbd_t*);
+
+/* acquiert une connexion qui aura la dur&eacute;e de vie de la requ&ecirc;te et qui
+ * NE DEVRA PAS &ecirc;tre explicitement ferm&eacute;e. Renvoie NULL en cas
+ * d'erreur. C'est la fonction recommand&eacute;e pour la plupart des
+ * applications.
+ */
+AP_DECLARE(ap_dbd_t*) ap_dbd_acquire(request_rec*);
+
+/* acquiert une connexion qui aura la dur&eacute;e de vie d'une connexion et
+ * qui NE DEVRA PAS &ecirc;tre explicitement ferm&eacute;e. Renvoie NULL en cas
+ * d'erreur.
+ */
+AP_DECLARE(ap_dbd_t*) ap_dbd_cacquire(conn_rec*);
+
+/* Pr&eacute;pare une requ&ecirc;te qu'un module client pourra utiliser */
+AP_DECLARE(void) ap_dbd_prepare(server_rec*, const char*, const char*);
+
+/* Exporte aussi ces fonctions &agrave; titre optionnel mour les modules qui
+ * p&eacute;f&egrave;reraient les utiliser */
+APR_DECLARE_OPTIONAL_FN(ap_dbd_t*, ap_dbd_open, (apr_pool_t*, server_rec*));
+APR_DECLARE_OPTIONAL_FN(void, ap_dbd_close, (server_rec*, ap_dbd_t*));
+APR_DECLARE_OPTIONAL_FN(ap_dbd_t*, ap_dbd_acquire, (request_rec*));
+APR_DECLARE_OPTIONAL_FN(ap_dbd_t*, ap_dbd_cacquire, (conn_rec*));
+APR_DECLARE_OPTIONAL_FN(void, ap_dbd_prepare, (server_rec*, const char*, const char*));</pre>
+
+</div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="prepared">Requ&ecirc;tes SQL pr&eacute;par&eacute;es <a title="Lien permanent" href="#prepared" class="permalink">&para;</a></h2>
+    <p><code class="module"><a href="../mod/mod_dbd.html">mod_dbd</a></code> supporte les requ&ecirc;tes SQL pr&eacute;par&eacute;es pour
+    le compte des modules qui pourraient les utiliser. Chaque requ&ecirc;te
+    pr&eacute;par&eacute;e doit poss&eacute;der un nom (&eacute;tiquette), et est stock&eacute;e dans un
+    condens&eacute; (hash) : les condens&eacute;s sont du type
+    <code>apr_dbd_prepared_t</code> et s'utilisent dans toute requ&ecirc;te
+    SQL ou commande select pr&eacute;par&eacute;e par apr_dbd.</p>
+
+    <p>Il est du ressort des modules utilisateurs de dbd d'utiliser les
+    requ&ecirc;tes pr&eacute;par&eacute;es et de pr&eacute;ciser quelles requ&ecirc;tes doivent &ecirc;tre
+    sp&eacute;cifi&eacute;es dans httpd.conf, ou de fournir leurs propres directives
+    et d'utiliser <code>ap_dbd_prepare</code>.</p>
+
+    <div class="warning"><h3>Avertissement</h3>
+	Lorsqu'on utilise des requ&ecirc;tes pr&eacute;par&eacute;es avec des bases de
+	donn&eacute;es MySQL, il est pr&eacute;f&eacute;rable de d&eacute;finir
+	<code>reconnect</code> &agrave; 0 dans la cha&icirc;ne de connexion, afin
+	d'&eacute;viter des erreurs provoqu&eacute;es par un client MySQL qui se
+	reconnecterait sans r&eacute;initialiser correctement les requ&ecirc;tes
+	pr&eacute;par&eacute;es. Si <code>reconnect</code> est d&eacute;fini &agrave; 1, toute
+	connexion d&eacute;fectueuse sera sens&eacute;e &ecirc;tre r&eacute;par&eacute;e, mais comme
+	mod_dbd n'en est pas inform&eacute;, les requ&ecirc;tes pr&eacute;par&eacute;es seront
+	invalid&eacute;es.
+	</div>
+</div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="security">AVERTISSEMENT DE SECURITE <a title="Lien permanent" href="#security" class="permalink">&para;</a></h2>
+
+    <p>Toute application web impliquant une base de donn&eacute;es doit se
+    prot&eacute;ger elle-m&ecirc;me contre les attaques de type injection SQL. Dans
+    la plupart des cas Apache DBD est s&ucirc;r, car les applications
+    utilisent des requ&ecirc;tes pr&eacute;par&eacute;es, et les entr&eacute;es non s&ucirc;res ne seront
+    utilis&eacute;es qu'&agrave; titre de donn&eacute;es. Bien entendu, si vous l'utilisez
+    via un module tiers, vous devez &ecirc;tre au fait des pr&eacute;cautions &agrave;
+    prendre.</p>
+    <p>Cependant, le pilote <var>FreeTDS</var> est <strong>non
+    s&ucirc;r</strong> de par sa nature m&ecirc;me. Comme la biblioth&egrave;que
+    sous-jacente ne supporte pas les requ&ecirc;tes pr&eacute;par&eacute;es, le pilote en
+    effectue une &eacute;mulation, et les entr&eacute;es non s&ucirc;res sont fusionn&eacute;es
+    avec la requ&ecirc;te SQL.</p>
+    <p>Il peut &ecirc;tre s&eacute;curis&eacute; en <em>d&eacute;contaminant</em> toutes les
+    entr&eacute;es : un processus inspir&eacute; de la recherche de contaminations de
+    Perl (NdT : <code>taint checking</code>). Chaque entr&eacute;e est compar&eacute;e
+    &agrave; une expression rationnelle, et
+    seules les entr&eacute;es qui correspondent sont utilis&eacute;es, en accord avec
+    le raccourci Perl :</p>
+    <div class="example"><pre><code>  $untrusted =~ /([a-z]+)/;
+  $trusted = $1;</code></pre></div>
+    <p>Pour utiliser ceci, les expressions rationnelles de
+    d&eacute;contamination doivent &ecirc;tre incluses dans les requ&ecirc;tes pr&eacute;par&eacute;es.
+    L'expression rationnelle doit se situer imm&eacute;diatement apr&egrave;s le
+    caract&egrave;re % dans la requ&ecirc;te pr&eacute;par&eacute;e, et doit &ecirc;tre entour&eacute;e
+    d'accolades {}. Par exemple, si votre application attend une entr&eacute;e
+    alphanum&eacute;rique, vous pouvez utiliser :</p>
+    <div class="example"><p><code>
+       <code>"SELECT foo FROM bar WHERE input = %s"</code>
+    </code></p></div>
+    <p>avec d'autres pilotes, et ne risquer au pire qu'une requ&ecirc;te
+    en &eacute;chec. Mais avec FreeTDS, vous devez utiliser :</p>
+    <div class="example"><p><code>
+       <code>"SELECT foo FROM bar WHERE input = %{([A-Za-z0-9]+)}s"</code>
+    </code></p></div>
+    <p>tout ce qui ne correspond pas &agrave; l'expression rationnelle est
+    alors rejet&eacute;, et la requ&ecirc;te est ainsi d&eacute;sormais s&ucirc;re.</p>
+    <p>Alternativement, vous pouvez utiliser le pilote ODBC tiers, qui
+    offre la s&eacute;curit&eacute; des requ&ecirc;tes pr&eacute;par&eacute;es authentiques.</p>
+</div>
+<div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="directive-section"><h2 id="dbdexptime">Directive <span id="DBDExptime">DBDExptime</span> <a title="Lien permanent" href="#dbdexptime" class="permalink">&para;</a></h2>
+<table class="directive">
+<tr><th><a href="directive-dict.html#Description">Description:</a></th><td>Dur&eacute;e de vie des connexions inactives</td></tr>
+<tr><th><a href="directive-dict.html#Syntax">Syntaxe:</a></th><td><code>DBDExptime <var>dur&eacute;e en secondes</var></code></td></tr>
+<tr><th><a href="directive-dict.html#Default">D&eacute;faut:</a></th><td><code>DBDExptime 300</code></td></tr>
+<tr><th><a href="directive-dict.html#Context">Contexte:</a></th><td>configuration globale, serveur virtuel</td></tr>
+<tr><th><a href="directive-dict.html#Status">Statut:</a></th><td>Extension</td></tr>
+<tr><th><a href="directive-dict.html#Module">Module:</a></th><td>mod_dbd</td></tr>
+</table>
+    <p>Cette directive d&eacute;finit la dur&eacute;e de vie des connexions
+    inactives lorsque le nombre de connexions sp&eacute;cifi&eacute; par la directive
+    DBDKeep a &eacute;t&eacute; d&eacute;pass&eacute; (plates-formes thread&eacute;es seulement).</p>
+
+</div>
+<div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="directive-section"><h2 id="dbdinitsql">Directive <span id="DBDInitSQL">DBDInitSQL</span> <a title="Lien permanent" href="#dbdinitsql" class="permalink">&para;</a></h2>
+<table class="directive">
+<tr><th><a href="directive-dict.html#Description">Description:</a></th><td>Ex&eacute;cute une instruction SQL apr&egrave;s connexion &agrave; une base de
+donn&eacute;es</td></tr>
+<tr><th><a href="directive-dict.html#Syntax">Syntaxe:</a></th><td><code>DBDInitSQL <var>"instruction SQL"</var></code></td></tr>
+<tr><th><a href="directive-dict.html#Context">Contexte:</a></th><td>configuration globale, serveur virtuel</td></tr>
+<tr><th><a href="directive-dict.html#Status">Statut:</a></th><td>Extension</td></tr>
+<tr><th><a href="directive-dict.html#Module">Module:</a></th><td>mod_dbd</td></tr>
+</table>
+    <p>Les modules qui le souhaitent peuvent ex&eacute;cuter une ou plusieurs
+    instructions SQL apr&egrave;s connexion &agrave; une base de donn&eacute;es. Par exemple
+    initialiser certaines valeurs, ou ajouter une entr&eacute;e dans le journal
+    lors d'une nouvelle connexion &agrave; la base de donn&eacute;es.</p>
+
+</div>
+<div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="directive-section"><h2 id="dbdkeep">Directive <span id="DBDKeep">DBDKeep</span> <a title="Lien permanent" href="#dbdkeep" class="permalink">&para;</a></h2>
+<table class="directive">
+<tr><th><a href="directive-dict.html#Description">Description:</a></th><td>Nombre maximum de connexions maintenues</td></tr>
+<tr><th><a href="directive-dict.html#Syntax">Syntaxe:</a></th><td><code>DBDKeep <var>nombre</var></code></td></tr>
+<tr><th><a href="directive-dict.html#Default">D&eacute;faut:</a></th><td><code>DBDKeep 2</code></td></tr>
+<tr><th><a href="directive-dict.html#Context">Contexte:</a></th><td>configuration globale, serveur virtuel</td></tr>
+<tr><th><a href="directive-dict.html#Status">Statut:</a></th><td>Extension</td></tr>
+<tr><th><a href="directive-dict.html#Module">Module:</a></th><td>mod_dbd</td></tr>
+</table>
+    <p>Cette directive d&eacute;finit le nombre maximum de connexions
+    &agrave; maintenir par processus, en dehors de celles servant &agrave; g&eacute;rer les
+    pics de demandes (plates-formes thread&eacute;es seulement).</p>
+
+</div>
+<div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="directive-section"><h2 id="dbdmax">Directive <span id="DBDMax">DBDMax</span> <a title="Lien permanent" href="#dbdmax" class="permalink">&para;</a></h2>
+<table class="directive">
+<tr><th><a href="directive-dict.html#Description">Description:</a></th><td>Nombre maximum de connexions</td></tr>
+<tr><th><a href="directive-dict.html#Syntax">Syntaxe:</a></th><td><code>DBDMax <var>nombre</var></code></td></tr>
+<tr><th><a href="directive-dict.html#Default">D&eacute;faut:</a></th><td><code>DBDMax 10</code></td></tr>
+<tr><th><a href="directive-dict.html#Context">Contexte:</a></th><td>configuration globale, serveur virtuel</td></tr>
+<tr><th><a href="directive-dict.html#Status">Statut:</a></th><td>Extension</td></tr>
+<tr><th><a href="directive-dict.html#Module">Module:</a></th><td>mod_dbd</td></tr>
+</table>
+    <p>Cette directive d&eacute;finit le nombre maximum effectif de
+    connexions par processus (plates-formes thread&eacute;es seulement).</p>
+
+</div>
+<div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="directive-section"><h2 id="dbdmin">Directive <span id="DBDMin">DBDMin</span> <a title="Lien permanent" href="#dbdmin" class="permalink">&para;</a></h2>
+<table class="directive">
+<tr><th><a href="directive-dict.html#Description">Description:</a></th><td>Nombre minimum de connexions</td></tr>
+<tr><th><a href="directive-dict.html#Syntax">Syntaxe:</a></th><td><code>DBDMin <var>nombre</var></code></td></tr>
+<tr><th><a href="directive-dict.html#Default">D&eacute;faut:</a></th><td><code>DBDMin 1</code></td></tr>
+<tr><th><a href="directive-dict.html#Context">Contexte:</a></th><td>configuration globale, serveur virtuel</td></tr>
+<tr><th><a href="directive-dict.html#Status">Statut:</a></th><td>Extension</td></tr>
+<tr><th><a href="directive-dict.html#Module">Module:</a></th><td>mod_dbd</td></tr>
+</table>
+    <p>Cette directive d&eacute;finit le nombre minimum de connexions
+    par processus (plates-formes thread&eacute;es seulement).</p>
+
+</div>
+<div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="directive-section"><h2 id="dbdparams">Directive <span id="DBDParams">DBDParams</span> <a title="Lien permanent" href="#dbdparams" class="permalink">&para;</a></h2>
+<table class="directive">
+<tr><th><a href="directive-dict.html#Description">Description:</a></th><td>Param&egrave;tres de la connexion &agrave; la base de
+donn&eacute;es</td></tr>
+<tr><th><a href="directive-dict.html#Syntax">Syntaxe:</a></th><td><code>DBDParams
+<var>param1</var>=<var>valeur1</var>[,<var>param2</var>=<var>valeur2</var>]</code></td></tr>
+<tr><th><a href="directive-dict.html#Context">Contexte:</a></th><td>configuration globale, serveur virtuel</td></tr>
+<tr><th><a href="directive-dict.html#Status">Statut:</a></th><td>Extension</td></tr>
+<tr><th><a href="directive-dict.html#Module">Module:</a></th><td>mod_dbd</td></tr>
+</table>
+    <p>Cette directive sp&eacute;cifie des param&egrave;tres selon les
+    besoins du pilote concern&eacute;. En g&eacute;n&eacute;ral, les param&egrave;tres &agrave; passer
+    concernent tout ce qui n'a pas de valeur par d&eacute;faut comme le nom
+    d'utilisateur, le mot de passe, le nom de la base de donn&eacute;es, le nom
+    d'h&ocirc;te et le num&eacute;ro de port de la connexion.</p>
+    <p>Les param&egrave;tres de la cha&icirc;ne de connexion en fonction des
+    diff&eacute;rents pilotes comprennent :</p>
+    <dl>
+    <dt>FreeTDS (pour MSSQL et SyBase)</dt>
+    <dd>username, password, appname, dbname, host, charset, lang, server</dd>
+    <dt>MySQL</dt>
+    <dd>host, port, user, pass, dbname, sock, flags, fldsz, group, reconnect</dd>
+    <dt>Oracle</dt>
+    <dd>user, pass, dbname, server</dd>
+    <dt>PostgreSQL</dt>
+    <dd>La cha&icirc;ne de connexion est pass&eacute;e directement &agrave; <code>PQconnectdb</code></dd>
+    <dt>SQLite2</dt>
+    <dd>La cha&icirc;ne de connexion est scind&eacute;e avec comme s&eacute;parateur le
+    caract&egrave;re ':', et <code>partie1:partie2</code> est utilis&eacute; dans
+    <code>sqlite_open(partie1, atoi(partie2), NULL)</code></dd>
+    <dt>SQLite3</dt>
+    <dd>La cha&icirc;ne de connexion est pass&eacute;e directement &agrave; <code>sqlite3_open</code></dd>
+    <dt>ODBC</dt>
+    <dd>datasource, user, password, connect, ctimeout, stimeout, access, txmode, bufsize</dd>
+    </dl>
+
+</div>
+<div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="directive-section"><h2 id="dbdpersist">Directive <span id="DBDPersist">DBDPersist</span> <a title="Lien permanent" href="#dbdpersist" class="permalink">&para;</a></h2>
+<table class="directive">
+<tr><th><a href="directive-dict.html#Description">Description:</a></th><td>Utiliser ou non des connexions persistentes</td></tr>
+<tr><th><a href="directive-dict.html#Syntax">Syntaxe:</a></th><td><code>DBDPersist On|Off</code></td></tr>
+<tr><th><a href="directive-dict.html#Context">Contexte:</a></th><td>configuration globale, serveur virtuel</td></tr>
+<tr><th><a href="directive-dict.html#Status">Statut:</a></th><td>Extension</td></tr>
+<tr><th><a href="directive-dict.html#Module">Module:</a></th><td>mod_dbd</td></tr>
+</table>
+    <p>Si cette directive est d&eacute;finie &agrave; Off, les connexions persistentes
+    et les connexions group&eacute;es sont d&eacute;sactiv&eacute;es. &Agrave; la demande d'un
+    client, une nouvelle connexion &agrave; la base de donn&eacute;es est ouverte, et
+    ferm&eacute;e imm&eacute;diatement &agrave; l'issue du traitement. Cette configuration ne
+    doit &ecirc;tre utilis&eacute;e qu'&agrave; des fins de d&eacute;bogage, ou sur des serveurs &agrave;
+    charge faible.</p>
+
+    <p>Par d&eacute;faut, les groupes de connexions persistentes sont activ&eacute;s
+    (ou une seule connexion persistente du style LAMP pour les serveurs
+    non thread&eacute;s), et c'est la configuration qui devrait &ecirc;tre utilis&eacute;e
+    dans la plupart des cas sur un serveur en production.</p>
+
+    <p>Avant la version 2.2.2, cette directive n'acceptait que les
+    valeurs <code>0</code> et <code>1</code> au lieu de <code>Off</code>
+    et <code>On</code>, respectivement.</p>
+
+</div>
+<div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="directive-section"><h2 id="dbdpreparesql">Directive <span id="DBDPrepareSQL">DBDPrepareSQL</span> <a title="Lien permanent" href="#dbdpreparesql" class="permalink">&para;</a></h2>
+<table class="directive">
+<tr><th><a href="directive-dict.html#Description">Description:</a></th><td>D&eacute;finit une requ&ecirc;te SQL pr&eacute;par&eacute;e</td></tr>
+<tr><th><a href="directive-dict.html#Syntax">Syntaxe:</a></th><td><code>DBDPrepareSQL <var>"requ&ecirc;te SQL"</var> <var>&eacute;tiquette</var></code></td></tr>
+<tr><th><a href="directive-dict.html#Context">Contexte:</a></th><td>configuration globale, serveur virtuel</td></tr>
+<tr><th><a href="directive-dict.html#Status">Statut:</a></th><td>Extension</td></tr>
+<tr><th><a href="directive-dict.html#Module">Module:</a></th><td>mod_dbd</td></tr>
+</table>
+    <p>Pour les modules tels que les modules d'authentification, qui
+    utilisent de mani&egrave;re r&eacute;p&eacute;t&eacute;e la m&ecirc;me requ&ecirc;te SQL, on peut optimiser
+    les performances en pr&eacute;parant la requ&ecirc;te une fois pour toutes au
+    d&eacute;marrage, plut&ocirc;t qu'&agrave; chaque utilisation. Cette directive permet de
+    pr&eacute;parer une requ&ecirc;te SQL et de lui assigner une &eacute;tiquette.</p>
+
+</div>
+<div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="directive-section"><h2 id="dbdriver">Directive <span id="DBDriver">DBDriver</span> <a title="Lien permanent" href="#dbdriver" class="permalink">&para;</a></h2>
+<table class="directive">
+<tr><th><a href="directive-dict.html#Description">Description:</a></th><td>Sp&eacute;cifie un pilote SQL</td></tr>
+<tr><th><a href="directive-dict.html#Syntax">Syntaxe:</a></th><td><code>DBDriver <var>nom</var></code></td></tr>
+<tr><th><a href="directive-dict.html#Context">Contexte:</a></th><td>configuration globale, serveur virtuel</td></tr>
+<tr><th><a href="directive-dict.html#Status">Statut:</a></th><td>Extension</td></tr>
+<tr><th><a href="directive-dict.html#Module">Module:</a></th><td>mod_dbd</td></tr>
+</table>
+    <p>Cette directive sp&eacute;cifie un pilote apr_dbd par son
+    nom. Le pilote doit &ecirc;tre install&eacute; sur votre syst&egrave;me (sur la plupart
+    des syst&egrave;mes, il s'agit d'un objet partag&eacute; ou d'une dll). Par
+    exemple, <code>DBDriver mysql</code> va s&eacute;lectionner le pilote MySQL
+    dans la biblioth&egrave;que apr_dbd_mysql.so.</p>
+
+</div>
+</div>
+<div class="bottomlang">
+<p><span>Langues Disponibles: </span><a href="../en/mod/mod_dbd.html" hreflang="en" rel="alternate" title="English">&nbsp;en&nbsp;</a> |
+<a href="../fr/mod/mod_dbd.html" title="Fran&ccedil;ais">&nbsp;fr&nbsp;</a></p>
+</div><div id="footer">
+<p class="apache">Copyright 2026 The Apache Software Foundation.<br>Autoris&eacute; sous <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache License, Version 2.0</a>.</p>
+<p class="menu"><a href="../mod/">Modules</a> | <a href="../mod/quickreference.html">Directives</a> | <a href="https://cwiki.apache.org/confluence/display/httpd/FAQ">FAQ</a> | <a href="../glossary.html">Glossaire</a> | <a href="../sitemap.html">Plan du site</a> | <a href="https://bz.apache.org/bugzilla/enter_bug.cgi?product=Apache%20httpd-2">Signaler un bug</a></p></div><script><!--//--><![CDATA[//><!--
+if (typeof(prettyPrint) !== 'undefined') {
+    prettyPrint();
+}
+var langToggle = document.querySelector('.lang-toggle');
+var topLang = document.querySelector('.toplang');
+if (langToggle && topLang) {
+    langToggle.addEventListener('click', function() { topLang.classList.toggle('open'); });
+}
+var qv = document.getElementById('quickview');
+if (qv) {
+    document.body.appendChild(qv);
+    var qvBtn = document.createElement('button');
+    qvBtn.className = 'qv-toggle';
+    qvBtn.setAttribute('aria-label', 'Toggle page navigation');
+    qvBtn.innerHTML = '&#9776;';
+    document.body.appendChild(qvBtn);
+    qvBtn.addEventListener('click', function() {
+        var isOpen = qv.classList.toggle('open');
+        if (isOpen) {
+            qv.style.top = window.scrollY + 10 + 'px';
+        }
+    });
+    window.addEventListener('scroll', function() { qv.classList.remove('open'); });
+}
+//--><!]]></script>
+</body></html>

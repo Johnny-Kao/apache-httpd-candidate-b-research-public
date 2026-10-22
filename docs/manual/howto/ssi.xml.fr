@@ -1,0 +1,459 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE manualpage SYSTEM "../style/manualpage.dtd">
+<?xml-stylesheet type="text/xsl" href="../style/manual.fr.xsl"?>
+<!-- English Revision: 1935522 -->
+<!-- French translation : Lucien GENTIS -->
+<!-- Reviewed by : Vincent Deffontaines -->
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<manualpage metafile="ssi.xml.meta">
+<parentdocument href="./">Recettes et tutoriels</parentdocument>
+
+<title>Tutoriel Apache httpd : Introduction aux "Inclusions Côté Serveur"
+(Server Side Includes - SSI)</title>
+
+<summary>
+<p>Les SSI permettent d'ajouter du contenu dynamique à des documents
+HTML préexistants sans nécessiter de cadriciel complet d’application. Ils
+s’avèrent particulièrement utiles pour insérer des éléments courants — en-têtes,
+pieds de page, navigation, horodatages — dans des pages qui, sans cela, seraient
+statiques.</p>
+</summary>
+
+<section id="related"><title>Introduction</title>
+ <related>
+    <modulelist>
+    <module>mod_include</module>
+    <module>mod_cgi</module>
+    <module>mod_expires</module>
+    </modulelist>
+
+    <directivelist>
+    <directive module="core">Options</directive>
+    <directive module="mod_include">XBitHack</directive>
+    <directive module="mod_mime">AddType</directive>
+    <directive module="core">SetOutputFilter</directive>
+    <directive module="mod_setenvif">BrowserMatchNoCase</directive>
+    </directivelist>
+</related>
+
+    <p>Les SSI permettent d’insérer de simples directives dans les fichiers
+    HTML, que le serveur évaluera avant d’envoyer la page au client. Il s’agit
+    d’une manière simple de stocker du contenu partagé (comme un pied de page
+    global au site ou un horodatage de dernière modification) en un seul
+    endroit, sans nécessiter de moteur de modèle ou de serveur d’applications.</p>
+
+    <p>Ce document décrit la manière de configurer httpd pour autoriser les
+    SSI, les directives SSI basiques pour les tâches courantes, ainsi que
+    quelques techniques plus avancées comme l’inclusion de variable et les
+    expressions conditionnelles.</p>
+    
+</section>
+
+<section id="what"><title>Qu'est-ce que SSI ?</title>
+
+    <p>Les directives SSI sont des commentaires HTML avec une syntaxe spécifique
+    que le module <module>mod_include</module> reconnaît et évalue avant que la
+    page ne soit envoyée au client. Elle sont de la forme suivante :</p>
+
+<example>
+<highlight language="html">
+&lt;!--#echo var="DATE_LOCAL" --&gt;
+</highlight>
+</example>
+
+    <p>Lorsque la page est servie, ce fragment est remplacé par sa valeur :</p>
+    
+    <example>
+    Thursday, 18-Jun-2026 14:22:07 EDT
+    </example>
+
+    <p>Les directives étant intégrées dans des commentaires HTML, les
+    navigateurs les ignoreront si les SSI ne sont pas activées (bien qu’elles
+    demeurent visibles dans le code source de la page).</p>
+</section>
+
+<section id="configuring">
+<title>Configurer votre serveur pour permettre les SSI</title>
+
+    <p>Pour activer le traitement des SSI, ajoutez la directive suivante à votre
+    fichier <code>httpd.conf</code> ou à un fichier <code>.htaccess</code> :</p>
+
+<example>
+<highlight language="config">
+        Options +Includes
+</highlight>
+</example>
+
+    <p>Si cette option est définie, httpd va analyser les fichiers en y
+    recherchant des directives SSI. Comme la plupart des configurations
+    contiennent plusieurs directives <directive module="core"
+    >Options</directive> qui peuvent s’outrepasser les unes les autres,
+    appliquez la directive d’activation au répertoire spécifique pour lequel
+    vous voulez activer les SSI.</p>
+
+    <p>Vous devez aussi indiquer à httpd les fichiers qu’il doit analyser. Pour
+    ce faire, il existe deux approches courantes.</p>
+
+    <p>La première consiste à indiquer une extension de nom de fichier (en
+    général <code>.shtml</code>) pour les pages pour lesquelles les SSI sont
+    activées :</p>
+
+<example>
+<highlight language="config">
+AddType text/html .shtml
+AddOutputFilter INCLUDES .shtml        
+</highlight>
+</example>
+
+    <p>Cette approche a pour désavantage de nécessiter, pour ajouter des SSI à
+    une page existante, de renommer le fichier (et de mettre à jour tous les
+    liens vers ce dernier) pour utiliser l’extension <code>.shtml</code>.</p>
+
+    <p>La seconde approche consiste à utiliser la directive <directive
+    module="mod_include">XBitHack</directive> :</p>
+
+<example>    
+<highlight language="config">
+        XBitHack on
+</highlight>
+</example>
+
+    <p>La directive <directive module="mod_include">XBitHack</directive> indique
+    à httpd qu’il doit analyser tout fichier dont le bit d’exécution est
+    positionné. Ainsi, pour activer les SSI pour une page existante, il suffit
+    de rendre le fichier exécutable :</p>
+
+<example>
+<highlight language="bash">
+chmod +x pagename.html
+</highlight>
+</example>
+    
+    <note type="warning"><p>
+    Évitez de configurer httpd pour analyser <em>tous</em> les fichiers
+    <code>.html</code> pour y trouver des directives SSI. Cela force en effet le
+    serveur à parcourir tous les fichiers HTML qu’il sert, même ceux qui n’ont
+    pas de contenu SSI, ce qui ajoute une surcharge de travail inutile.
+    </p></note>
+
+    <p>Sous Windows, il n’y a pas de bit d’exécution ; l’approche avec la
+    directive <directive module="mod_include">XBitHack</directive> n’est donc
+    pas valable dans ce cas. Vous devrez alors utiliser l’approche par extension
+    de nom de fichier.</p>
+
+    <p>Par défaut, httpd n’envoie pas la date de dernière modification ou les
+    en-têtes content-length sur les pages SSI, car ces valeurs sont difficiles à
+    calculer pour un contenu dynamique. Cela peut empêcher la mise en cache et
+    induire un ressenti de performances plus lentes. Deux approches peuvent
+    aider :</p>    
+
+    <ol>
+      <li>Utilisez la directive <code>XBitHack Full</code> qui indique à httpd
+      qu’il doit déterminer la date de dernière modification à partir du fichier
+      initialement demandé, tout en ignorant les dates de dernière modification
+      des fichiers inclus.</li>
+
+      <li>Utilisez le module <module>mod_expires</module> pour définir un moment
+      d’expiration explicite, indiquant ainsi aux navigateurs et aux mandataires
+      que le contenu peut être mis en cache.</li>
+      
+    </ol>
+</section>
+
+<section id="basic"><title>Directives SSI de base</title>
+
+    <p>Les directives SSI utilisent la syntaxe suivante :</p>
+<example>
+<highlight language="html">
+&lt;!--#function attribute=value attribute=value ... --&gt;
+</highlight> 
+</example>
+
+    <p>Si les SSI sont correctement configurées, la directive sera remplacée par
+    sa sortie. Dans le cas contraire, elle demeurera en tant que commentaire
+    HTML — invisible à l’utilisateur final, mais présente dans le code source de
+    la page.</p>
+
+<section id="todaysdate"><title>La date courante</title>
+
+<example>
+<highlight language="html">
+&lt;!--#echo var="DATE_LOCAL" --&gt;
+</highlight>
+</example>
+
+    <p>La fonction <code>echo</code> a pour sortie la valeur d’une variable. Les
+    variables standard incluent le jeu complet de variables d’environnement
+    disponibles pour les programmes CGI, ainsi que les variables que vous pouvez
+    définir avec <code>set</code>.</p>
+
+    <p>Pour personnaliser le format de la date, utilisez la fonction
+    <code>config</code> avec l’attribut <code>timefmt</code> :</p>
+
+<example>
+<highlight language="html">
+&lt;!--#config timefmt="%A %B %d, %Y" --&gt;<br />
+Today is &lt;!--#echo var="DATE_LOCAL" --&gt;
+</highlight>
+</example>
+</section>
+
+<section id="lastmodified"><title>Date de modification du fichier</title>
+
+<example>
+<highlight language="html">
+Dernière modification du document &lt;!--#flastmod file="index.html" --&gt;
+</highlight>
+</example>
+
+    <p>Le format peut là aussi être modifié à l'aide de l'attribut
+    <code>timefmt</code>.</p>
+</section>
+
+<section id="cgi"><title>Inclusion des résultats d'un programme CGI</title>
+
+    <p>Les SSI permettent d’inclure directement la sortie d’un programme CGI
+    dans la page :</p>
+
+<example>
+<highlight language="html">
+&lt;!--#include virtual="/cgi-bin/counter.pl" --&gt;
+</highlight>
+</example>
+
+</section>
+</section>
+
+<section id="additionalexamples">
+<title>Exemples additionnels</title>
+
+    <p>Vous trouverez dans les exemples pratiques suivants des cas d’utilisation
+    courants des SSI.</p>
+
+<section id="docmodified"><title>Quand ce document a-t-il été modifié ?</title>
+
+    <p>Une des utilisations courantes des SSI est l’affichage d’un horodatage
+    « date de dernière modification » sur chaque page. Le code suivant utilise
+    la variable <code>LAST_MODIFIED</code> ; vous pouvez donc coller le même
+    extrait dans tout fichier sans modifier son nom :</p>
+
+<example>
+<highlight language="html">
+&lt;!--#config timefmt="%D" --&gt;<br />
+Date de dernière modification de ce fichier &lt;!--#echo var="LAST_MODIFIED" --&gt;
+</highlight>
+
+</example>
+
+    <p>Pour des détails à propos des chaînes de formatage de
+    <code>timefmt</code>, voir la documentation de <code>strftime</code> dans le
+    manuel de référence de la bibliothèque C de votre système.</p>
+</section>
+
+<section id="standard-footer">
+<title>Inclusion d'un pied de page standard</title>
+
+        <p>Sur un site qui comporte plus que quelques pages, maintenir un
+	en-tête ou un pied de page cohérent sur toutes les pages peut s’avérer
+	fastidieux. Les SSI résolvent ce problème en permettant de stocker le
+	contenu partagé dans un seul fichier et d’inclure ce dernier n’importe
+	où :</p>
+
+<example>
+<highlight language="html">
+&lt;!--#include virtual="/footer.html" --&gt;
+</highlight>
+</example>
+
+    <p>La fonction <code>include</code> accepte deux attributs :
+    <code>file</code> qui spécifie un chemin relatif au répertoire actuel (il ne
+    peut pas spécifier un chemin absolu ou contenant <code>../</code>), et
+    <code>virtual</code> qui spécifie un URL relatif au document servi (et qui
+    peut commencer par <code>/</code>, mais doit être sur le même serveur).</p>
+
+    <p>Les directives SSI au sein des fichiers inclus sont évaluées normalement
+    et les inclusions peuvent être imbriquées. Cela signifie que vous pouvez
+    placer un horodatage <code>LAST_MODIFIED</code> dans votre fichier de pied
+    de page, et qu’il sera évalué dans le contexte de chaque page qui l’inclut.</p>
+
+</section>
+
+</section>
+
+<section id="config">
+<title>Autres options de configuration</title>
+
+    <p>En plus de <code>timefmt</code>, la fonction <code>config</code> accepte
+    deux autres attributs.</p>
+
+    <p>L’attribut <code>errmsg</code> modifie le message d’erreur affiché
+    lorsqu’une directive SSI échoue. Le message par défaut est :</p>
+<example>
+[an error occurred while processing this directive]
+</example>
+
+    <p>Vous pouvez le remplacer par un contenu plus adapté à votre site :</p>
+<example>
+<highlight language="html">
+&lt;!--#config errmsg="[Content unavailable]" --&gt;
+</highlight>
+</example>
+
+    <p>L’attribut <code>sizefmt</code> contrôle la manière dont les tailles de
+    fichier sont spécifiées : <code>bytes</code> pour un décompte en octets ou
+    <code>abbrev</code> pour une forme abrégée en Ko ou Mo.</p>
+</section>
+
+<section id="exec">
+    <title>Exécution de commandes</title>
+
+    <p>La fonction <code>exec</code> permet d’exécuter une commande du shell et
+    d’inclure sa sortie dans la page. Sur les systèmes de style Unix, la
+    commande est exécutée via <code>/bin/sh</code>, et sous Windows via
+    l’interpréteur de commande.</p>
+
+<example>
+<highlight language="html">
+&lt;pre&gt;
+&lt;!--#exec cmd="ls" --&gt;
+&lt;/pre&gt;
+</highlight>
+</example>
+    <note type="warning"><p>
+    La fonctionnalité <code>exec</code> constitue un risque de sécurité
+    significatif. En effet, elle exécute des commandes arbitraires avec les
+    privilèges du processus du serveur web. Si les utilisateurs peuvent éditer
+    du contenu sur votre site, assurez-vous que cette fonctionnalité soit
+    désactivée en spécifiant <code>IncludesNOEXEC</code> au lieu de
+    <code>Includes</code> dans la définition de la directive <directive module="core"
+    >Options</directive>.
+    </p></note>
+</section>
+
+    
+
+<section id="advanced">
+<title>Techniques SSI avancées</title>
+
+    <p>Au-delà de la simple inclusion de contenu, les SSI prennent en charge les
+    variables et les expressions conditionnelles, rendant possible la génération
+    de contenus différents en fonction du contexte de la requête.</p>
+
+<section id="variables"><title>Définition de variables</title>
+
+    <p>La directive <code>set</code> permet de définir des variables à utiliser
+    plus tard dans la page :</p>
+
+<example>
+<highlight language="html">
+&lt;!--#set var="name" value="Rich" --&gt;
+</highlight>
+</example>
+
+    <p>Les variables peuvent référencer d’autres variables (y compris des <a
+    href="../env.html">variables d’environnement</a>) en utilisant le signe dollar
+    (<code>$</code>) comme préfixe :</p>
+
+<example>
+<highlight language="html">
+&lt;!--#set var="modified" value="$LAST_MODIFIED" --&gt;
+</highlight>
+</example>
+
+    <p>Pour inclure un signe dollar littéral, protégez-le avec une
+    contre-oblique :</p>
+
+<example>
+<highlight language="html">
+&lt;!--#set var="cost" value="\$100" --&gt;
+</highlight>
+</example>
+
+    <p>Lorsqu'un nom de variable risque d'être ambigu au sein d'une chaîne plus
+    longue, utilisez des accolades pour le délimiter :</p>
+
+<example>
+<highlight language="html">
+&lt;!--#set var="date" value="${DATE_LOCAL}_${DATE_GMT}" --&gt;
+</highlight>
+</example>
+</section>
+
+<section id="conditional">
+<title>Expressions conditionnelles</title>
+
+    <p><module>mod_include</module> fournit les éléments <code>if</code>,
+    <code>elif</code>, <code>else</code> et <code>endif</code> permettant de
+    construire une logique conditionnelle. Cette fonctionnalité permet de
+    générer des sorties différentes à partir d’une seule page physique.</p>
+
+    <p>La structure est :</p>
+
+<example>
+<highlight language="html">
+&lt;!--#if expr="test_condition" --&gt;<br />
+&lt;!--#elif expr="test_condition" --&gt;<br />
+&lt;!--#else --&gt;<br />
+&lt;!--#endif --&gt;
+</highlight>
+</example>
+
+    <p>Une <em>test_condition</em> peut comparer des valeurs ou vérifier si une
+    variable n’est pas vide. Voir la documentation de
+    <module>mod_include</module> pour la liste complète des opérateurs de
+    comparaison.</p>
+
+    <p>Par exemple, pour afficher des salutations différentes en fonction de
+    l’heure du jour :</p>
+
+<example>
+<highlight language="html">
+Good
+&lt;!--#if expr="%{TIME_HOUR} &lt;12" --&gt;<br />
+morning!<br />
+&lt;!--#else --&gt;<br />
+afternoon!<br />
+&lt;!--#endif --&gt;<br />
+</highlight>
+</example>    
+
+    <p>Toute variable — définie par l’utilisateur ou issue de l’environnement
+    — peut être utilisée dans les expressions conditionnelles. Voir <a
+    href="../expr.html">Les expressions dans le Serveur HTTP Apache</a> pour des
+    détails complets à propos du moteur d’évaluation des expressions.</p>
+
+    <p>Combinées avec la capacité de httpd à définir des variables
+    d’environnement en utilisant <directive
+    module="mod_setenvif">SetEnvIf</directive> et les directives apparentées,
+    les SSI conditionnelles peuvent traiter une grande variété de scénarios de
+    contenu dynamique sans nécessiter de cadriciel complet d’applications.</p>
+</section>
+</section>
+
+<section id="conclusion"><title>Conclusion</title>
+
+    <p>Pour les sites principalement statiques mais nécessitant quelques touches
+    dynamiques, les SSI évitent la surcharge de travail induite par la
+    configuration d’une pile complète d’applications. Elles ne requièrent que
+    <module>mod_include</module> et quelques lignes de configuration pour
+    fonctionner.</p>
+</section>
+
+</manualpage>

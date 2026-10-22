@@ -1,0 +1,140 @@
+<?xml version="1.0" ?>
+<!DOCTYPE manualpage SYSTEM "./style/manualpage.dtd">
+<?xml-stylesheet type="text/xsl" href="./style/manual.fr.xsl"?>
+<!-- French translation : Lucien GENTIS -->
+<!-- Reviewed by : Vincent Deffontaines -->
+<!-- English Revision: 922232 -->
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<manualpage metafile="server-wide.xml.meta">
+
+  <title>Configuration à l'échelle du serveur</title>
+
+<summary>
+<p>Ce document explique le fonctionnement de certaines directives du serveur
+de base qui sont utilisées pour configurer les opérations élémentaires du
+serveur.</p>
+</summary>
+
+  <section id="identification">
+    <title>Identification du serveur</title>
+
+    <related>
+      <directivelist>
+        <directive module="core">ServerName</directive>
+        <directive module="core">ServerAdmin</directive>
+        <directive module="core">ServerSignature</directive>
+        <directive module="core">ServerTokens</directive>
+        <directive module="core">UseCanonicalName</directive>
+        <directive module="core">UseCanonicalPhysicalPort</directive>
+      </directivelist>
+    </related>
+
+    <p>Les directives <directive module="core">ServerAdmin</directive> et
+    <directive module="core">ServerTokens</directive> contrôlent la nature des
+    informations à propos du serveur qui seront affichées dans les documents
+    générés par le serveur comme les messages d'erreur. La directive
+    <directive module="core">ServerTokens</directive> définit la valeur du
+    champ d'en-tête de la réponse du serveur HTTP.</p>
+
+    <p>Le serveur utilise les directives
+    <directive module="core">ServerName</directive>,
+    <directive module="core">UseCanonicalName</directive> et
+    <directive module="core">UseCanonicalPhysicalPort</directive> pour
+    déterminer la manière de construire des URLs vers ses propres ressources.
+    Par exemple, quand un client émet une requête vers un répertoire, mais
+    n'ajoute pas le slash final au nom du répertoire, httpd doit rediriger le
+    client vers le nom complet incluant le slash final afin que le client
+    puisse résoudre correctement les références relatives présentes dans
+    le document.</p>
+  </section>
+
+  <section id="locations">
+    <title>Localisation des fichiers</title>
+
+    <related>
+      <directivelist>
+        <directive module="mpm_common">CoreDumpDirectory</directive>
+        <directive module="core">DocumentRoot</directive>
+        <directive module="core">ErrorLog</directive>
+        <directive module="core">Mutex</directive>
+        <directive module="mpm_common">PidFile</directive>
+        <directive module="mpm_common">ScoreBoardFile</directive>
+        <directive module="core">ServerRoot</directive>
+      </directivelist>
+    </related>
+
+    <p>Ces directives contrôlent la localisation des différents fichiers
+    nécessaires au bon fonctionnement de httpd. Quand le chemin utilisé ne
+    commence pas par un slash (/), la localisation des fichiers est relative
+    à la valeur de la directive
+    <directive module="core">ServerRoot</directive>. Soyez prudent avec la
+    localisation de fichiers dans des répertoires où les utilisateurs non root
+    ont les droits en écriture. Voir la documention sur les
+    <a href="misc/security_tips.html#serverroot">Conseils à propos
+    de la sécurité</a> pour plus de détails.</p>
+  </section>
+
+  <section id="resource">
+    <title>Limitation de l'utilisation des ressources</title>
+
+    <related>
+      <directivelist>
+        <directive module="core">LimitRequestBody</directive>
+        <directive module="core">LimitRequestFields</directive>
+        <directive module="core">LimitRequestFieldsize</directive>
+        <directive module="core">LimitRequestLine</directive>
+        <directive module="core">RLimitCPU</directive>
+        <directive module="core">RLimitMEM</directive>
+        <directive module="core">RLimitNPROC</directive>
+        <directive module="mpm_common">ThreadStackSize</directive>
+      </directivelist>
+    </related>
+
+    <p>Les directives <directive>LimitRequest</directive>* permettent de
+    limiter la quantité de ressources consommées par httpd pour le traitement
+    des requêtes des clients. Cette limitation permet de minimiser les effets
+    de certains types d'attaques par déni de service.</p>
+
+    <p>Les directives <directive>RLimit</directive>* permettent de limiter la
+    quantité de ressources utilisable par les processus initiés (forked) par
+    les processus enfants httpd. Elles permettent en particulier de contrôler
+    les ressources utilisées par les scripts CGI et les commandes exec des
+    "Inclusions côté serveur" (Server Side Includes ou SSI).</p>
+
+    <p>La directive <directive module="mpm_common">ThreadStackSize</directive>
+    permet sur certaines plates-formes de contrôler la taille de la pile.</p>
+  </section>
+
+  <section id="implementation">
+    <title>Choix d'implémentation</title>
+
+    <related>
+      <directivelist>
+        <directive module="core">Mutex</directive>
+      </directivelist>
+    </related>
+
+    <p>La directive <directive>Mutex</directive> permet de modifier
+    l'implémentation sous-jacente des mutex, afin de résoudre les
+    problèmes de fonctionnement ou de performance dus au choix par
+    défaut d'<glossary>APR</glossary>.</p>
+  </section>
+
+</manualpage>

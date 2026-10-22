@@ -1,0 +1,183 @@
+<?xml version="1.0"?>
+<!DOCTYPE modulesynopsis SYSTEM "../style/modulesynopsis.dtd">
+<?xml-stylesheet type="text/xsl" href="../style/manual.de.xsl"?>
+<!-- English Revision: 420990:1935407 (outdated) -->
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<modulesynopsis metafile="prefork.xml.meta">
+
+<name>prefork</name>
+<description>Implementiert einen im Voraus forkenden Webserver ohne
+  Thread-Unterstützung</description>
+<status>MPM</status>
+<sourcefile>prefork.c</sourcefile>
+<identifier>mpm_prefork_module</identifier>
+
+<summary>
+    <p>Dieses Multi-Processing-Modul (MPM) implementiert einen
+    im Voraus forkenden Webserver ohne Thread-Unterstützung, der Anfragen
+    auf ähnliche Weise behandelt wie der Apache 1.3. Es ist für
+    Angebote geeignet, die aus Kompatibilitätsgründen mit
+    nicht-Thread-sicheren Bibliotheken Threading vermeiden müssen.
+    Es ist außerdem das geeignetste MPM, um jede Anfrage isoliert
+    zu bearbeiten, so dass Probleme mit einem einzelnen Prozess keinen
+    anderen beeinflussen.</p>
+
+    <p>Das MPM ist stark selbstregulierend, so dass es selten
+    notwendig ist, seine Konfigurationseinstellungen zu justieren. Das
+    Wichtigste ist, dass <directive module="mpm_common">MaxClients</directive>
+    gross genug ist, so viele gleichzeitige Anfragen zu bedienen, wie Sie
+    erwarten, aber klein genug, um sicherzustellen, dass genug physischer
+    Arbeitsspeicher für alle Prozesse vorhanden ist.</p>
+</summary>
+<seealso><a href="../bind.html">Bestimmen der vom Apache verwendeten Adressen
+  und Ports</a></seealso>
+
+<section id="how-it-works"><title>Arbeitsweise</title>
+    <p>Ein einzelner Steuerprozess ist für den Start von
+    Kindprozessen verantwortlich, die auf Verbindungen warten und diese
+    bedienen, sobald sie eintreffen. Der Apache versucht immer, mehrere
+    <dfn>freie</dfn> oder unbeschäftigte Serverprozesse vorzuhalten,
+    die zur Bedienung eingehender Anfragen bereit stehen. Auf diese Weise
+    müssen Clients nicht darauf warten, dass neue Kindprozesse
+    geforkt werden, bevor ihre Anfrage bearbeitet werden kann.</p>
+
+    <p><directive module="mpm_common">StartServers</directive>,
+    <directive module="prefork">MinSpareServers</directive>,
+    <directive module="prefork">MaxSpareServers</directive> und
+    <directive module="mpm_common">MaxClients</directive> regulieren,
+    wie der Elternprozess Kindprozesse zur Bedienung von Anfragen erstellt.
+    Im Allgemeinen ist der Apache sehr selbstregulierend, so dass die meisten
+    Angebote die Voreinstellung dieser Direktiven nicht verändern
+    müssen. Systeme, die mehr als 256 gleichzeitige Anfragen bedienen
+    müssen, können <directive
+    module="mpm_common">MaxClients</directive> erhöhen, während
+    Systeme mit begrenztem Arbeitsspeicher möglicherweise
+    <directive module="mpm_common">MaxClients</directive> heruntersetzen
+    müssen, um den Server vor Flatterverhalten (Arbeitsspeicherinhalte auf
+    Platte auslagern - und zurück) zu schützen. Weitere
+    Informationen zur Feinabstimmung der Prozesserstellung sind in den
+    <a href="../misc/perf-tuning.html">Performance-Hinweisen</a> zu
+    finden.</p>
+
+    <p>Währen der Elternprozess unter Unix normalerweise als
+    <code>root</code> gestartet wird, um sich an Port 80 binden zu können,
+    werden die Kindprozesse unter einem weniger privilegierten Benutzer
+    gestartet. Die Direktiven <directive module="mpm_common">User</directive>
+    und <directive module="mpm_common">Group</directive> werden dazu
+    verwendet, die Privilegien der Apache-Kindprozesse festzulegen. Die
+    Kindprozesse müssen in der Lage sein, alle Inhalte zu lesen, die
+    sie ausliefern sollen, sollten darüber hinaus jedoch so wenig wie
+    möglich Rechte besitzen.</p>
+
+    <p><directive module="mpm_common">MaxRequestsPerChild</directive>
+    bestimmt, wie häufig der Server Prozesse erneuert, indem er alte
+    beendet und neue startet.</p>
+</section>
+
+<directivesynopsis location="mpm_common"><name>CoreDumpDirectory</name>
+</directivesynopsis>
+<directivesynopsis location="mpm_common"><name>EnableExceptionHook</name>
+</directivesynopsis>
+<directivesynopsis location="mpm_common"><name>PidFile</name>
+</directivesynopsis>
+<directivesynopsis location="mpm_common"><name>Listen</name>
+</directivesynopsis>
+<directivesynopsis location="mpm_common"><name>ListenBacklog</name>
+</directivesynopsis>
+<directivesynopsis location="mpm_common"><name>LockFile</name>
+</directivesynopsis>
+<directivesynopsis location="mpm_common"><name>MaxClients</name>
+</directivesynopsis>
+<directivesynopsis location="mpm_common"><name>MaxMemFree</name>
+</directivesynopsis>
+<directivesynopsis location="mpm_common"><name>MaxRequestsPerChild</name>
+</directivesynopsis>
+<directivesynopsis location="mpm_common"><name>ScoreBoardFile</name>
+</directivesynopsis>
+<directivesynopsis location="mpm_common"><name>ReceiveBufferSize</name>
+</directivesynopsis>
+<directivesynopsis location="mpm_common"><name>SendBufferSize</name>
+</directivesynopsis>
+<directivesynopsis location="mpm_common"><name>ServerLimit</name>
+</directivesynopsis>
+<directivesynopsis location="mpm_common"><name>StartServers</name>
+</directivesynopsis>
+<directivesynopsis location="mpm_common"><name>User</name>
+</directivesynopsis>
+<directivesynopsis location="mpm_common"><name>Group</name>
+</directivesynopsis>
+<directivesynopsis location="mpm_common"><name>AcceptMutex</name>
+</directivesynopsis>
+
+<directivesynopsis>
+<name>MaxSpareServers</name>
+<description>Maximale Anzahl der unbeschäftigten Kindprozesse des
+  Servers</description>
+<syntax>MaxSpareServers <var>Anzahl</var></syntax>
+<default>MaxSpareServers 10</default>
+<contextlist><context>server config</context></contextlist>
+
+<usage>
+    <p>Die Direktive <directive>MaxSpareServers</directive> bestimmt das
+    gewünschte Maximum an <em>unbeschäftigten</em>
+    Kindprozessen des Servers. Ein unbeschäftiger Prozess ist einer, der
+    keine Anfrage bedient. Wenn mehr als <directive>MaxSpareServers</directive>
+    Prozesse unbeschäftigt sind, wird der Elternprozess die
+    überschüssigen Prozesse beenden.</p>
+
+    <p>Eine Feineinstellung dieses Parameters sollte nur bei sehr
+    beschäftigten Angeboten notwendig sein. Es ist nahezu immer eine
+    schlechte Idee, den Parameter auf einen hohen Wert zu setzen. Wenn Sie
+    versuchen, den Wert kleiner oder gleich <directive
+    module="prefork">MinSpareServers</directive> zu setzen, wird der Apache
+    ihn automatisch auf <directive
+      module="prefork">MinSpareServers</directive> <code>+ 1</code>
+    korrigieren.</p>
+</usage>
+<seealso><directive module="prefork">MinSpareServers</directive></seealso>
+<seealso><directive module="mpm_common">StartServers</directive></seealso>
+</directivesynopsis>
+
+<directivesynopsis>
+<name>MinSpareServers</name>
+<description>Minimale Anzahl der unbeschäftigten Kindprozesse des
+  Servers</description>
+<syntax>MinSpareServers <var>Anzahl</var></syntax>
+<default>MinSpareServers 5</default>
+<contextlist><context>server config</context></contextlist>
+
+<usage>
+    <p>Die Direktive <directive>MinSpareServers</directive> bestimmt das
+    gewünschte Minimum der <em>unbeschäftigten</em>
+    Kindprozesse des Servers. Ein unbeschäftigter Prozess ist einer, der
+    keine Anfrage bedient. Wenn weniger als
+    <directive>MinSpareServers</directive> Prozesse unbeschäftigt sind,
+    dann erstellt der Elternprozess neue mit einer maximalen Rate von 1
+    pro Sekunde.</p>
+
+    <p>Die Feineinstellung des Parameters sollte nur bei sehr
+    beschäftigten Angeboten notwendig sein. Es ist nahezu immer eine
+    schlechte ide, den Parameter auf einen hohen Wert zu setzen.</p>
+</usage>
+<seealso><directive module="prefork">MaxSpareServers</directive></seealso>
+<seealso><directive module="mpm_common">StartServers</directive></seealso>
+</directivesynopsis>
+
+</modulesynopsis>

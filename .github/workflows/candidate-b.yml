@@ -1,0 +1,44 @@
+name: Candidate B localhost test
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Apache ${{ matrix.ref }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ref: ["2.4.69", "trunk"]
+    steps:
+      - name: Check out research repository
+        uses: actions/checkout@v4
+
+      - name: Install Apache build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf build-essential libapr1-dev \
+            libaprutil1-dev libpcre2-dev libnghttp2-dev libtool libtool-bin \
+            pkg-config
+
+      - name: Build upstream Apache ${{ matrix.ref }}
+        run: |
+          git clone --depth 1 --branch "${{ matrix.ref }}" \
+            https://github.com/apache/httpd.git "$RUNNER_TEMP/httpd"
+          cd "$RUNNER_TEMP/httpd"
+          ./buildconf
+          ./configure --prefix="$RUNNER_TEMP/apache-install" \
+            --enable-proxy --enable-proxy-http --enable-mods-shared=most
+          make -j2
+          make install
+
+      - name: Run synchronized localhost experiment
+        run: |
+          python3 research/test_candidate_b.py \
+            --httpd "$RUNNER_TEMP/apache-install/bin/httpd" \
+            --server-root "$RUNNER_TEMP/apache-install"

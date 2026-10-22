@@ -1,0 +1,186 @@
+<!DOCTYPE html SYSTEM "about:legacy-compat">
+<html lang="fr"><head><META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<!--
+        XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+              This file is generated from xml source: DO NOT EDIT
+        XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      -->
+<title>mod_systemd - Serveur HTTP Apache Version 2.5</title>
+<link href="../style/css/manual.css" rel="stylesheet" media="all" type="text/css" title="Main stylesheet">
+<link href="../style/css/manual-loose-100pc.css" rel="alternate stylesheet" media="all" type="text/css" title="No Sidebar - Default font size">
+<link href="../style/css/manual-print.css" rel="stylesheet" media="print" type="text/css"><link rel="stylesheet" type="text/css" href="../style/css/prettify.css">
+<script src="../style/scripts/prettify.min.js">
+</script>
+
+<link href="../images/favicon.png" rel="shortcut icon"></head>
+<body>
+<div id="page-header">
+<p class="menu"><a href="../mod/">Modules</a> | <a href="../mod/quickreference.html">Directives</a> | <a href="https://cwiki.apache.org/confluence/display/httpd/FAQ">FAQ</a> | <a href="../glossary.html">Glossaire</a> | <a href="../sitemap.html">Plan du site</a> | <a href="https://bz.apache.org/bugzilla/enter_bug.cgi?product=Apache%20httpd-2">Signaler un bug</a></p>
+<p class="apache">Serveur HTTP Apache Version 2.5</p>
+<img alt="" src="../images/feather.png"></div>
+<div class="up"><a href="./"><img title="<-" alt="<-" src="../images/left.gif"></a></div>
+<div id="path">
+<a href="https://www.apache.org/">Apache</a> &gt; <a href="https://httpd.apache.org/">Serveur HTTP</a> &gt; <a href="https://httpd.apache.org/docs/">Documentation</a> &gt; <a href="../">Version 2.5</a> &gt; <a href="./">Modules</a></div>
+<div id="page-content">
+<div id="preamble"><h1>Module Apache mod_systemd</h1>
+<button aria-label="Toggle language list" class="lang-toggle"><svg xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke="currentColor" fill="none" viewBox="0 0 24 24" height="16" width="16"><circle r="10" cy="12" cx="12"/><line y2="12" x2="22" y1="12" x1="2"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></button>
+<div class="toplang">
+<p><span>Langues Disponibles: </span><a href="../en/mod/mod_systemd.html" hreflang="en" rel="alternate" title="English">&nbsp;en&nbsp;</a> |
+<a href="../fr/mod/mod_systemd.html" title="Fran&ccedil;ais">&nbsp;fr&nbsp;</a></p>
+</div>
+<table class="module"><tr><th><a href="module-dict.html#Description">Description:</a></th><td>Fournit un support am&eacute;lior&eacute; pour l'int&eacute;gration de systemd</td></tr>
+<tr><th><a href="module-dict.html#Status">Statut:</a></th><td>Extension</td></tr>
+<tr><th><a href="module-dict.html#ModuleIdentifier">Identificateur&nbsp;de&nbsp;Module:</a></th><td>systemd_module</td></tr>
+<tr><th><a href="module-dict.html#SourceFile">Fichier&nbsp;Source:</a></th><td>mod_systemd.c</td></tr>
+<tr><th><a href="module-dict.html#Compatibility">Compatibilit&eacute;:</a></th><td>Disponible &agrave; partir de la version 2.4.42 du serveur HTTP Apache</td></tr></table>
+<h3>Sommaire</h3>
+
+    <p>Ce module impl&eacute;mente le support de l'int&eacute;gration de systemd. Il permet
+    d'utiliser httpd en temps que service avec le param&egrave;tre de systemd
+    <code>Type=notify</code> ou <code>Type=notify-reload</code> (voir la page de
+    manuel <a href="https://www.freedesktop.org/software/systemd/man/systemd.service.html">systemd.service(5)</a>
+    pour plus de d&eacute;tails). Le module est activ&eacute; s'il est charg&eacute;.</p>
+
+    <div class="example"><h3>Exemple basique d'unit&eacute; de service systemd (&agrave; &eacute;toffer pour un syst&egrave;me en
+    production)</h3><pre>[Unit]
+Description=The Apache HTTP Server
+After=network.target
+
+[Service]
+Type=notify
+ExecStart=/usr/local/apache2/bin/httpd -D FOREGROUND -k start
+ExecReload=/usr/local/apache2/bin/httpd -k graceful
+KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target</pre></div>
+
+   <p>Si vous utilisez <code>ExecStop</code> et/ou <code>KillMode</code>, vous
+   devez pr&ecirc;ter une attention particuli&egrave;re &agrave; leur configuration pour ce service.
+   Si elle est pr&eacute;sente, une commande <code>ExecStop</code> doit &ecirc;tre une
+   <em>operation synchrone</em> qui se termine elle-m&ecirc;me en m&ecirc;me temps que le
+   d&eacute;mon. Cette condition n'est pas satisfaite si vous ex&eacute;cutez la commande
+   <code>httpd -k stop</code> de mani&egrave;re <em>asynchrone</em>, car elle initie
+   l'arr&ecirc;t du d&eacute;mon. L'exemple ci-dessus utilise <code>KillMode=mixed</code>
+   afin que systemd envoie <code>SIGTERM</code> au processus parent (et
+   seulement &agrave; ce dernier) pour lui indiquer qu'il doit s'arr&ecirc;ter. Les processus
+   encore en cours d'ex&eacute;cution apr&egrave;s un temps &eacute;gal &agrave; <code>TimeoutStopSec</code>
+   recevront alors le signal <code>SIGKILL</code>. Voir <a href="https://www.freedesktop.org/software/systemd/man/systemd.kill.html">systemd.kill(5)</a>
+   pour plus d'informations.</p>
+    
+   <p>&Agrave; partir de la version 253 de systemd, un gestionnaire de service fournit
+   <code>Type=notify-reload</code> qu&rsquo;il est pr&eacute;f&eacute;rable d&rsquo;utiliser. Avec
+   <code>Type=notify</code>, <code>systemctl reload</code> quitte d&egrave;s que la
+   commande <code>ExecReload</code> a envoy&eacute; son signal, ce qui se produit avant
+   que la nouvelle configuration n&rsquo;ait &eacute;t&eacute; lue, et elle indique une ex&eacute;cution
+   r&eacute;ussie quoi qu&rsquo;il se passe au cours du red&eacute;marrage suivant.
+   <code>Type=notify-reload</code>, quant &agrave; lui, maintien le rechargement ouvert
+   jusqu&rsquo;&agrave; ce que le serveur indique qu&rsquo;il a termin&eacute;, de sorte que la commande
+   attende que la nouvelle configuration soit prise en compte, et &eacute;choue si ce
+   n&rsquo;est pas le cas. mod_systemd envoie la notification <code>RELOADING=1</code>
+   que le protocole attend pendant la lecture de la configuration, estampill&eacute;e
+   de l&rsquo;&eacute;tiquette <code>MONOTONIC_USEC</code> requise par le gestionnaire de
+   services, et <code>READY=1</code> quand elle a &eacute;t&eacute; charg&eacute;e.</p>
+
+    <div class="example"><h3>Un exemple d&rsquo;unit&eacute; de service qui recharge de mani&egrave;re synchrone</h3><pre>[Service]
+Type=notify-reload
+ReloadSignal=SIGCONT
+ExecStart=/usr/local/apache2/bin/httpd -D FOREGROUND -k start
+ExecReload=/usr/local/apache2/bin/httpd -k graceful
+KillMode=mixed</pre></div>
+
+   <p>Le gestionnaire de service ex&eacute;cute tout d&rsquo;abord <code>ExecReload</code>,
+   puis n&rsquo;envoie le signal sp&eacute;cifi&eacute; par <code>ReloadSignal</code> que lorsque la
+   commande a quitt&eacute; avec succ&egrave;s. Conserver <code>ExecReload</code> rend le
+   rechargement de la configuration s&ucirc;r&nbsp;: <code>httpd -k graceful</code> analyse
+   la nouvelle configuration dans un processus qui lui est propre et quitte sans
+   rien signaler si l&rsquo;analyse &eacute;choue&nbsp;; dans ce cas, le rechargement de la
+   configuration &eacute;choue et le serveur en cours d&rsquo;ex&eacute;cution continue avec la
+   configuration qu&rsquo;il utilise d&eacute;j&agrave;. Omettre <code>ExecReload</code> et laisser
+   le gestionnaire de service informer le serveur directement emp&ecirc;che cette
+   v&eacute;rification&nbsp;: le processus parent en cours d&rsquo;ex&eacute;cution lit la nouvelle
+   configuration lui-m&ecirc;me, et une configuration dont l&rsquo;analyse &eacute;choue le fait
+   quitter, ce qui arr&ecirc;te le serveur.</p>
+
+   <p>Le signal envoy&eacute; une fois <code>ExecReload</code> ex&eacute;cut&eacute;e est alors
+   redondant&nbsp;; <code>ReloadSignal</code> devrait donc en sp&eacute;cifier un dont
+   httpd ne tient pas compte, tel que <code>SIGCONT</code>. Il est important
+   qu&rsquo;il soit d&eacute;fini&nbsp;: le signal par d&eacute;faut est <code>SIGHUP</code> que httpd
+   interpr&egrave;te comme un red&eacute;marrage <em>forc&eacute;</em> en fermant les connexions
+   qu&rsquo;un red&eacute;marrage est cens&eacute; pr&eacute;server. Une unit&eacute; qui utilise
+   <code>ExecReload</code> doit d&eacute;finir <code>ReloadSignal=SIGUSR1</code>, le
+   signal avec lequel httpd red&eacute;marre en douceur.</p>
+
+   <p>L&rsquo;activation du socket de systemd est prise en charge si httpd a &eacute;t&eacute;
+   construit en ce sens. Chaque port sp&eacute;cifi&eacute; par la directive <code class="directive"><a href="../mod/mpm_common.html#listen">Listen</a></code> doit alors avoir &eacute;t&eacute; indiqu&eacute; par
+   systemd&nbsp;; tout port qui ne l&rsquo;a pas &eacute;t&eacute; g&eacute;n&eacute;rera une erreur de configuration
+   fatale et httpd ne l&rsquo;ouvrira pas pour lui-m&ecirc;me. L&rsquo;activation du socket n&rsquo;est
+   utilis&eacute;e que si ce module est charg&eacute;&nbsp;; il peut donc &ecirc;tre construit et gard&eacute;
+   inutilis&eacute;.</p>
+
+    <p><code class="directive"><a href="../mod/core.html#extendedstatus">ExtendedStatus</a></code> est activ&eacute; par d&eacute;faut
+    si le module est charg&eacute;. Si <code class="directive"><a href="../mod/core.html#extendedstatus">ExtendedStatus</a></code> n'est pas explicitement d&eacute;sactiv&eacute;
+    dans le fichier de configuration, les statistiques &agrave; propos de la charge et
+    des requ&ecirc;tes pendant l'ex&eacute;cution appara&icirc;tront dans la sortie de la commande
+    <code>systemctl status</code>.</p>
+
+    <p>systemd watchdog est pris en charge. Si l&rsquo;unit&eacute; de service d&eacute;finit
+    <code>WatchdogSec=</code>, le processus parent envoie la notification de
+    persistance qui informe systemd que le serveur est encore en vie&nbsp;; un
+    serveur qui cesse de l&rsquo;envoyer est arr&ecirc;t&eacute; et red&eacute;marr&eacute; avec une d&eacute;finition
+    de <code>Restart=</code> appropri&eacute;e. La notification est envoy&eacute;e pendant la
+    lecture de la configuration et &agrave; nouveau une fois qu&rsquo;elle a &eacute;t&eacute; charg&eacute;e, de
+    sorte qu&rsquo;un rechargement soit pris en compte p&eacute;riodiquement par le processus
+    parent pendant l&rsquo;ex&eacute;cution du serveur.</p>
+
+    <p>Cette notification p&eacute;riodique est envoy&eacute;e environ toutes les dix
+    secondes, ce qui correspond &agrave; la p&eacute;riodicit&eacute; avec laquelle le processus
+    parent ex&eacute;cute le programme d&rsquo;accroche &agrave; partir duquel elle est envoy&eacute;e. Une
+    valeur de <code>WatchdogSec=</code> inf&eacute;rieure &agrave; deux fois cette p&eacute;riode ne
+    conviendrait pas, car systemd arr&ecirc;terait un serveur qui fonctionne
+    normalement&nbsp;; un tel r&eacute;glage est signal&eacute; sous forme d&rsquo;avertissement au
+    d&eacute;marrage. Utilisez une valeur d&rsquo;au moins 20&nbsp;secondes pour
+    <code>WatchdogSec=</code>.</p>
+
+    <div class="example"><h3>Ajouter une supervision watchdog &agrave; une des unit&eacute;s ci-avant</h3><pre>[Service]
+WatchdogSec=30
+Restart=on-failure</pre></div>
+</div>
+<div id="quickview"><h3 class="directives">Directives</h3>
+<p>Ce module ne fournit aucune directive.</p>
+<h3>Traitement des bugs</h3><ul class="seealso"><li><a href="https://www.apache.org/dist/httpd/CHANGES_2.4">Journal des modifications de httpd</a></li><li><a href="https://bz.apache.org/bugzilla/buglist.cgi?bug_status=__open__&amp;list_id=144532&amp;product=Apache%20httpd-2&amp;query_format=specific&amp;order=changeddate%20DESC%2Cpriority%2Cbug_severity&amp;component=mod_systemd">Probl&egrave;mes connus</a></li><li><a href="https://bz.apache.org/bugzilla/enter_bug.cgi?product=Apache%20httpd-2&amp;component=mod_systemd">Signaler un bug</a></li></ul></div>
+
+</div>
+<div class="bottomlang">
+<p><span>Langues Disponibles: </span><a href="../en/mod/mod_systemd.html" hreflang="en" rel="alternate" title="English">&nbsp;en&nbsp;</a> |
+<a href="../fr/mod/mod_systemd.html" title="Fran&ccedil;ais">&nbsp;fr&nbsp;</a></p>
+</div><div id="footer">
+<p class="apache">Copyright 2026 The Apache Software Foundation.<br>Autoris&eacute; sous <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache License, Version 2.0</a>.</p>
+<p class="menu"><a href="../mod/">Modules</a> | <a href="../mod/quickreference.html">Directives</a> | <a href="https://cwiki.apache.org/confluence/display/httpd/FAQ">FAQ</a> | <a href="../glossary.html">Glossaire</a> | <a href="../sitemap.html">Plan du site</a> | <a href="https://bz.apache.org/bugzilla/enter_bug.cgi?product=Apache%20httpd-2">Signaler un bug</a></p></div><script><!--//--><![CDATA[//><!--
+if (typeof(prettyPrint) !== 'undefined') {
+    prettyPrint();
+}
+var langToggle = document.querySelector('.lang-toggle');
+var topLang = document.querySelector('.toplang');
+if (langToggle && topLang) {
+    langToggle.addEventListener('click', function() { topLang.classList.toggle('open'); });
+}
+var qv = document.getElementById('quickview');
+if (qv) {
+    document.body.appendChild(qv);
+    var qvBtn = document.createElement('button');
+    qvBtn.className = 'qv-toggle';
+    qvBtn.setAttribute('aria-label', 'Toggle page navigation');
+    qvBtn.innerHTML = '&#9776;';
+    document.body.appendChild(qvBtn);
+    qvBtn.addEventListener('click', function() {
+        var isOpen = qv.classList.toggle('open');
+        if (isOpen) {
+            qv.style.top = window.scrollY + 10 + 'px';
+        }
+    });
+    window.addEventListener('scroll', function() { qv.classList.remove('open'); });
+}
+//--><!]]></script>
+</body></html>

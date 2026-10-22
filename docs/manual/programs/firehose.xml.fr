@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!DOCTYPE manualpage SYSTEM "../style/manualpage.dtd">
+<?xml-stylesheet type="text/xsl" href="../style/manual.fr.xsl"?>
+<!-- English Revision : 1242907 -->
+<!-- French translation : Lucien GENTIS -->
+<!-- Reviewed by : Vincent Deffontaines -->
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<manualpage metafile="firehose.xml.meta">
+<parentdocument href="./">Programs</parentdocument>
+
+<title>firehose - Démultiplexe un flux firehose</title>
+
+<summary>
+    <p><code>firehose</code> démultiplexe le flux de connexions
+    multiplexées donné, et enregistre chacune d'entre elles dans un
+    fichier individuel.</p>
+
+    <p>Lors de son enregistrement, chaque connexion est placée dans un
+    fichier dédié dont le nom est généré à partir de l'UUID de la
+    connexion dans le flux. Si le flux comporte des requêtes et des
+    réponses, ces dernières feront l'objet de fichiers séparés.</p>
+
+    <p>Si le paramètre optionnel prefix est spécifié, les connexions qui
+    commencent par le préfixe donné seront incluses. Le préfixe doit
+    correspondre exactement au premier fragment pour un résultat de
+    comparaison positif.</p>
+
+</summary>
+<seealso><module>mod_firehose</module></seealso>
+
+<section id="synopsis"><title>Syntaxe</title>
+    <p><code><strong>firehose</strong>
+    [ -<strong>f</strong> <var>entrée</var> ]
+    [ -<strong>o</strong> <var>répertoire-sortie</var> ]
+    [ -<strong>u</strong> <var>uuid</var> ]
+    [ -<strong>h</strong> ]
+    [ --<strong>version</strong> ]
+    [<var>préfixe1</var> [...]]</code></p>
+
+</section>
+
+<section id="options"><title>Options</title>
+    <dl>
+    <dt><code>--file, -f <var>nom-fichier</var></code></dt>
+    <dd>Fichier depuis lequel doit être lu le flux firehose. La valeur
+    par défaut est stdin.</dd>
+
+    <dt><code>--output-directory, -o </code> <var>répertoire-sortie</var></dt>
+    <dd>Répertoire dans lequel les connexions démultiplexées doivent
+    être enregistrées.</dd>
+
+    <dt><code>--uuid, -u</code> <var>uuid</var></dt>
+    <dd>L'UUID de la connexion à démultiplexer. Plusieurs UUID peuvent
+    être spécifiés. Par défaut, tout les UUID seront démultiplexés.</dd>
+
+    <dt><code>--help, -h</code></dt>
+    <dd>Ce texte d'aide.</dd>
+
+    <dt><code>--version</code></dt>
+    <dd>Affiche la version du programme.</dd>
+    </dl>
+
+</section>
+
+</manualpage>

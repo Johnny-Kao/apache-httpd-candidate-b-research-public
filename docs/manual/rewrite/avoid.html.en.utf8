@@ -1,0 +1,580 @@
+<!DOCTYPE html SYSTEM "about:legacy-compat">
+<html lang="en"><head><META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<!--
+        XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+              This file is generated from xml source: DO NOT EDIT
+        XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      -->
+<title>When not to use mod_rewrite - Apache HTTP Server Version 2.5</title>
+<link href="../style/css/manual.css" rel="stylesheet" media="all" type="text/css" title="Main stylesheet">
+<link href="../style/css/manual-loose-100pc.css" rel="alternate stylesheet" media="all" type="text/css" title="No Sidebar - Default font size">
+<link href="../style/css/manual-print.css" rel="stylesheet" media="print" type="text/css"><link rel="stylesheet" type="text/css" href="../style/css/prettify.css">
+<script src="../style/scripts/prettify.min.js">
+</script>
+
+<link href="../images/favicon.png" rel="shortcut icon"></head>
+<body id="manual-page"><div id="page-header">
+<p class="menu"><a href="../mod/">Modules</a> | <a href="../mod/quickreference.html">Directives</a> | <a href="https://cwiki.apache.org/confluence/display/httpd/FAQ">FAQ</a> | <a href="../glossary.html">Glossary</a> | <a href="../sitemap.html">Sitemap</a> | <a href="https://bz.apache.org/bugzilla/enter_bug.cgi?product=Apache%20httpd-2">Report a bug</a></p>
+<p class="apache">Apache HTTP Server Version 2.5</p>
+<img alt="" src="../images/feather.png"></div>
+<div class="up"><a href="./"><img title="<-" alt="<-" src="../images/left.gif"></a></div>
+<div id="path">
+<a href="https://www.apache.org/">Apache</a> &gt; <a href="https://httpd.apache.org/">HTTP Server</a> &gt; <a href="https://httpd.apache.org/docs/">Documentation</a> &gt; <a href="../">Version 2.5</a> &gt; <a href="./">Rewrite</a></div><div id="page-content"><div id="preamble"><h1>When not to use mod_rewrite</h1>
+<button aria-label="Toggle language list" class="lang-toggle"><svg xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke="currentColor" fill="none" viewBox="0 0 24 24" height="16" width="16"><circle r="10" cy="12" cx="12"/><line y2="12" x2="22" y1="12" x1="2"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></button>
+<div class="toplang">
+<p><span>Available Languages: </span><a href="../de/rewrite/avoid.html" hreflang="de" rel="alternate" title="Deutsch">&nbsp;de&nbsp;</a> |
+<a href="../en/rewrite/avoid.html" title="English">&nbsp;en&nbsp;</a> |
+<a href="../es/rewrite/avoid.html" hreflang="es" rel="alternate" title="Espa&ntilde;ol">&nbsp;es&nbsp;</a> |
+<a href="../fr/rewrite/avoid.html" hreflang="fr" rel="alternate" title="Fran&ccedil;ais">&nbsp;fr&nbsp;</a> |
+<a href="../ja/rewrite/avoid.html" hreflang="ja" rel="alternate" title="Japanese">&nbsp;ja&nbsp;</a> |
+<a href="../ko/rewrite/avoid.html" hreflang="ko" rel="alternate" title="Korean">&nbsp;ko&nbsp;</a> |
+<a href="../tr/rewrite/avoid.html" hreflang="tr" rel="alternate" title="T&uuml;rk&ccedil;e">&nbsp;tr&nbsp;</a> |
+<a href="../zh-cn/rewrite/avoid.html" hreflang="zh-cn" rel="alternate" title="Simplified Chinese">&nbsp;zh-cn&nbsp;</a></p>
+</div>
+
+
+<p>This document supplements the <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code>
+<a href="../mod/mod_rewrite.html">reference documentation</a>. It describes
+perhaps one of the most important concepts about <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> - namely,
+when to avoid using it.</p>
+
+<p><code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> should be considered a last resort, when other
+alternatives are found wanting. Using it when there are simpler
+alternatives leads to configurations which are confusing, fragile, and
+hard to maintain. Understanding what other alternatives are available is
+a very important step towards <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> mastery.</p>
+
+<p>Note that many of these examples won't work unchanged in your
+particular server configuration, so it's important that you understand
+them, rather than merely cutting and pasting the examples into your
+configuration.</p>
+
+<p>The most common situation in which <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> is
+the right tool is when the very best solution requires access to the
+server configuration files, and you don't have that access. Some
+configuration directives are only available in the server configuration
+file. So if you are in a hosting situation where you only have .htaccess
+files to work with, you may need to resort to
+<code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code>.</p>
+
+</div>
+<div id="quickview"><ul id="toc"><li><img alt="" src="../images/down.gif"> <a href="#redirect">Simple Redirection</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#alias">URL Aliasing</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#proxy">Simple Proxying</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#setenv">Environment Variable Testing</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#fallback-resource">Front Controller / Resource Routing</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#ifexpr">Conditional Configuration with Expressions</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#blocked-inline-images">Forbidding Image Hotlinking</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#blocking-of-robots">Blocking of Robots</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#host-deny">Denying Hosts in a Reject List</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#vhosts">Virtual Hosting</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#load-balancing">Load Balancing</a></li>
+</ul><h3>See also</h3><ul class="seealso"><li><a href="../mod/mod_rewrite.html">Module documentation</a></li><li><a href="intro.html">mod_rewrite introduction</a></li><li><a href="remapping.html">Redirection and remapping</a></li><li><a href="htaccess.html">Per-directory Rewrites</a></li><li><a href="flags.html">RewriteRule Flags</a></li><li><a href="vhosts.html">Virtual hosts</a></li><li><a href="rewritemap.html">Using RewriteMap</a></li><li><a href="tech.html">Technical details</a></li></ul></div>
+<div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="redirect">Simple Redirection <a title="Permanent link" href="#redirect" class="permalink">&para;</a></h2>
+
+
+<p><code class="module"><a href="../mod/mod_alias.html">mod_alias</a></code> provides the <code class="directive"><a href="../mod/mod_alias.html#redirect">Redirect</a></code> and <code class="directive"><a href="../mod/mod_alias.html#redirectmatch">RedirectMatch</a></code> directives, which provide a
+means to redirect one URL to another. This kind of simple redirection of
+one URL, or a class of URLs, to somewhere else, should be accomplished
+using these directives rather than <code class="directive"><a href="../mod/mod_rewrite.html#rewriterule">RewriteRule</a></code>. <code>RedirectMatch</code>
+allows you to include a regular expression in your redirection criteria,
+providing many of the benefits of using <code>RewriteRule</code>.</p>
+
+<p>A common use for <code>RewriteRule</code> is to redirect an entire
+class of URLs. For example, all URLs in the <code>/one</code> directory
+must be redirected to <code>http://one.example.com/</code>, or perhaps
+all <code>http</code> requests must be redirected to
+<code>https</code>.</p>
+
+<p>These situations are better handled by the <code>Redirect</code>
+directive. Remember that <code>Redirect</code> preserves path
+information. That is to say, a redirect for a URL <code>/one</code> will
+also redirect all URLs under that, such as <code>/one/two.html</code>
+and <code>/one/three/four.html</code>.</p>
+
+<p>To redirect URLs under <code>/one</code> to
+<code>http://one.example.com</code>, do the following:</p>
+
+<pre class="prettyprint lang-config">Redirect "/one/" "http://one.example.com/"</pre>
+
+
+<p>To redirect one hostname to another, for example
+<code>example.com</code> to <code>www.example.com</code>, see the
+<a href="remapping.html#canonicalhost">Canonical Hostnames</a>
+recipe.</p>
+
+<p>To redirect <code>http</code> URLs to <code>https</code>, a
+<code class="directive"><a href="../mod/mod_alias.html#redirect">Redirect</a></code> in a dedicated
+HTTP virtual host is the cleanest approach. See the
+<a href="remapping.html#https-redirect">Forcing HTTPS</a> recipe for
+the recommended configuration and the
+<code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> alternative for <code>.htaccess</code>
+use.</p>
+
+    <div class="note"><h3>Processing order</h3>
+    <p>If you do mix <code class="directive"><a href="../mod/mod_alias.html#redirect">Redirect</a></code>
+    and <code class="directive"><a href="../mod/mod_rewrite.html#rewriterule">RewriteRule</a></code> in the
+    same context, be aware that their execution order depends on where
+    they appear. In server/virtual-host context,
+    <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> runs first; in per-directory context
+    (<code>.htaccess</code>), <code class="module"><a href="../mod/mod_alias.html">mod_alias</a></code> runs first. See
+    <a href="tech.html#order">Module Processing Order</a> for
+    details.</p>
+    </div>
+
+</div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="alias">URL Aliasing <a title="Permanent link" href="#alias" class="permalink">&para;</a></h2>
+<p>The <code class="directive"><a href="../mod/mod_alias.html#alias">Alias</a></code> directive
+provides mapping from a URL-path to a directory - usually a directory outside
+of your <code class="directive"><a href="../mod/core.html#documentroot">DocumentRoot</a></code>. Although it
+is possible to perform this mapping with <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code>,
+<code class="directive"><a href="../mod/mod_alias.html#alias">Alias</a></code> is the preferred method, for
+reasons of simplicity and performance.</p>
+
+<div class="example"><h3>Using Alias</h3><pre class="prettyprint lang-config">Alias "/cats" "/var/www/virtualhosts/felines/htdocs"</pre>
+</div>
+
+<p>
+The use of <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> to perform this mapping may be
+appropriate when you do not have access to the server configuration
+files. Alias may only be used in server or virtualhost context, and not
+in a <code>.htaccess</code> file.
+</p>
+
+<p>Symbolic links would be another way to accomplish the same thing, if
+you have <code>Options FollowSymLinks</code> enabled on your
+server.</p>
+</div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="proxy">Simple Proxying <a title="Permanent link" href="#proxy" class="permalink">&para;</a></h2>
+
+<p><code class="directive"><a href="../mod/mod_rewrite.html#rewriterule">RewriteRule</a></code> provides the <a href="flags.html#flag_p">[P]</a> flag to pass rewritten URIs through
+<code class="module"><a href="../mod/mod_proxy.html">mod_proxy</a></code>.</p>
+
+<pre class="prettyprint lang-config">RewriteRule "^/?images(.*)" "http://imageserver.local/images$1" [P]</pre>
+
+
+<p>However, in many cases, when there is no actual pattern matching
+needed, as in the example shown above, the <code class="directive"><a href="../mod/mod_proxy.html#proxypass">ProxyPass</a></code> directive is a better choice.
+The example here could be rendered as:</p>
+
+<pre class="prettyprint lang-config">ProxyPass "/images/" "http://imageserver.local/images/"</pre>
+
+
+<p>Note that whether you use <code class="directive"><a href="../mod/mod_rewrite.html#rewriterule">RewriteRule</a></code> or <code class="directive"><a href="../mod/mod_proxy.html#proxypass">ProxyPass</a></code>, you'll still need to use the
+<code class="directive"><a href="../mod/mod_proxy.html#proxypassreverse">ProxyPassReverse</a></code> directive to
+catch redirects issued from the back-end server:</p>
+
+<pre class="prettyprint lang-config">ProxyPassReverse "/images/" "http://imageserver.local/images/"</pre>
+
+
+<p>You may need to use <code>RewriteRule</code> instead when there are
+other <code>RewriteRule</code>s in effect in the same scope, as a
+<code>RewriteRule</code> will usually take effect before a
+<code>ProxyPass</code>, and so may preempt what you're trying to
+accomplish.</p>
+
+<p>One case where <code class="directive"><a href="../mod/mod_rewrite.html#rewriterule">RewriteRule</a></code>
+is genuinely useful for proxying is when you want to proxy requests only
+for content that doesn't exist locally - for example, during a migration
+from one server to another:</p>
+
+<pre class="prettyprint lang-config">RewriteCond "%{REQUEST_FILENAME}"       !-f
+RewriteCond "%{REQUEST_FILENAME}"       !-d
+RewriteRule "^/(.*)"                    "http://old.example.com/$1" [P]
+ProxyPassReverse "/" "http://old.example.com/"</pre>
+
+
+<p>In this example, requests for resources that haven't been migrated
+yet are transparently proxied to the old server. As content is migrated,
+the local files take precedence. Remember to always include a
+<code class="directive"><a href="../mod/mod_proxy.html#proxypassreverse">ProxyPassReverse</a></code> directive to
+ensure that any redirects issued by the backend are correctly passed on
+to the client.</p>
+
+</div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="setenv">Environment Variable Testing <a title="Permanent link" href="#setenv" class="permalink">&para;</a></h2>
+
+<p><code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> is frequently used to take a particular
+action based on the presence or absence of a particular environment
+variable or request header. This can be done more efficiently using the
+<code class="directive"><a href="../mod/core.html#if">&lt;If&gt;</a></code> directive.</p>
+
+<p>Consider, for example, the common scenario where
+<code class="directive">RewriteRule</code> is used to enforce a canonical
+hostname, such as <code>www.example.com</code> instead of
+<code>example.com</code>. This can be done using the <code class="directive"><a href="../mod/core.html#if">&lt;If&gt;</a></code> directive, as shown here:</p>
+
+<pre class="prettyprint lang-config">&lt;If "req('Host') != 'www.example.com'"&gt;
+    Redirect "/" "http://www.example.com/"
+&lt;/If&gt;</pre>
+
+
+<p>This technique can be used to take actions based on any request
+header, response header, or environment variable, replacing
+<code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> in many common scenarios.</p>
+
+<p>See especially the <a href="../expr.html">expression evaluation
+documentation</a> for a overview of what types of expressions you can
+use in <code class="directive"><a href="../mod/core.html#if">&lt;If&gt;</a></code> sections,
+and in certain other directives.</p>
+
+</div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="fallback-resource">Front Controller / Resource Routing <a title="Permanent link" href="#fallback-resource" class="permalink">&para;</a></h2>
+
+<p>A very common use of <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> is to route all
+requests for non-existent resources to a single front controller script
+(e.g. <code>index.php</code>). This is the basis of most modern web
+framework routing.</p>
+
+<p>The typical <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> approach is:</p>
+
+<pre class="prettyprint lang-config">RewriteEngine On
+RewriteCond "%{REQUEST_FILENAME}" !-f
+RewriteCond "%{REQUEST_FILENAME}" !-d
+RewriteRule "^(.*)$" "/index.php" [L]</pre>
+
+
+<p>This can be accomplished far more simply with the
+<code class="directive"><a href="../mod/mod_dir.html#fallbackresource">FallbackResource</a></code> directive:</p>
+
+<pre class="prettyprint lang-config">FallbackResource /index.php</pre>
+
+
+<p><code class="directive"><a href="../mod/mod_dir.html#fallbackresource">FallbackResource</a></code> does the
+same thing - requests for existing files and directories are served
+normally, while everything else is routed to the specified resource -
+but without the overhead and complexity of the rewrite engine. It works
+in both server configuration and <code>.htaccess</code> context.</p>
+
+<p>To disable a <code>FallbackResource</code> set in a parent
+directory:</p>
+
+<pre class="prettyprint lang-config">FallbackResource disabled</pre>
+
+
+</div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="ifexpr">Conditional Configuration with Expressions <a title="Permanent link" href="#ifexpr" class="permalink">&para;</a></h2>
+
+<p>Many uses of <code class="directive"><a href="../mod/mod_rewrite.html#rewritecond">RewriteCond</a></code>
+can be replaced by the
+<code class="directive"><a href="../mod/core.html#if">&lt;If&gt;</a></code> directive, which
+supports a rich <a href="../expr.html">expression syntax</a> and
+integrates cleanly with other Apache directives.</p>
+
+<p>Redirect based on a query string parameter:</p>
+
+<pre class="prettyprint lang-config">&lt;If "%{QUERY_STRING} =~ /lang=fr/"&gt;
+    Redirect "/welcome" "/bienvenue"
+&lt;/If&gt;</pre>
+
+
+<p>Restrict access by request method:</p>
+
+<pre class="prettyprint lang-config">&lt;If "%{REQUEST_METHOD} IN {'DELETE', 'PUT', 'PATCH'}"&gt;
+    Require ip 10.0.0.0/8
+&lt;/If&gt;</pre>
+
+
+<p>Block requests missing a Host header (HTTP/1.0 clients):</p>
+
+<pre class="prettyprint lang-config">&lt;If "-z req('Host')"&gt;
+    Require all denied
+&lt;/If&gt;</pre>
+
+
+<p>See the <a href="../expr.html">expression evaluation
+documentation</a> for the full syntax available in
+<code class="directive"><a href="../mod/core.html#if">&lt;If&gt;</a></code> blocks.</p>
+
+</div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="blocked-inline-images">Forbidding Image Hotlinking <a title="Permanent link" href="#blocked-inline-images" class="permalink">&para;</a></h2>
+
+  
+
+  <dl>
+    <dt>Description:</dt>
+
+    <dd>
+      <p>"Hotlinking" is the practice of other sites including your
+      images inline in their pages, using your bandwidth to serve
+      content for someone else's site. You can prevent this without
+      <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code>.</p>
+    </dd>
+
+    <dt>Solution:</dt>
+
+    <dd>
+      <p>Use <code class="directive"><a href="../mod/mod_setenvif.html#setenvif">SetEnvIf</a></code>
+      with <code class="directive"><a href="../mod/mod_authz_core.html#require">Require</a></code>:</p>
+
+      <pre class="prettyprint lang-config">SetEnvIf Referer example\.com localreferer
+&lt;FilesMatch "\.(jpg|png|gif)$"&gt;
+    Require env localreferer
+&lt;/FilesMatch&gt;</pre>
+
+    </dd>
+
+    <dt>Discussion:</dt>
+
+    <dd>
+      <p>If you need more complex logic - such as serving an
+      alternate image to hotlinkers instead of denying the request - you
+      may need <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code>. The following examples
+      rely on the <code>HTTP_REFERER</code> header, which is optional
+      and can be spoofed. The <code>!^$</code> condition allows
+      requests with no Referer header at all, so that users who type
+      the URL directly, or whose browsers suppress the Referer, are
+      not blocked.</p>
+
+      <p>Deny the request outright:</p>
+
+<pre class="prettyprint lang-config">RewriteCond "%{HTTP_REFERER}"  "!^$"
+RewriteCond "%{HTTP_REFERER}"  "!www.example.com" [NC]
+RewriteRule "\.(gif|jpg|png)$" "-"                [F,NC]</pre>
+
+
+      <p>Serve an alternate image:</p>
+
+<pre class="prettyprint lang-config">RewriteCond "%{HTTP_REFERER}"  "!^$"
+RewriteCond "%{HTTP_REFERER}"  "!www.example.com"      [NC]
+RewriteRule "\.(gif|jpg|png)$" "/images/go-away.png"   [R,NC]</pre>
+
+
+    </dd>
+  </dl>
+
+</div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="blocking-of-robots">Blocking of Robots <a title="Permanent link" href="#blocking-of-robots" class="permalink">&para;</a></h2>
+
+  
+
+  <dl>
+    <dt>Description:</dt>
+
+    <dd>
+      <p>You wish to block persistent requests from a particular robot
+      or user agent that ignores your <code>/robots.txt</code>.</p>
+    </dd>
+
+    <dt>Solution:</dt>
+
+    <dd>
+      <p>Use <code class="directive"><a href="../mod/mod_setenvif.html#setenvifnocase">SetEnvIfNoCase</a></code>
+      with <code class="directive"><a href="../mod/mod_authz_core.html#require">Require</a></code>:</p>
+
+      <pre class="prettyprint lang-config">SetEnvIfNoCase User-Agent ^NameOfBadRobot goaway
+&lt;Location "/secret/files"&gt;
+    &lt;RequireAll&gt;
+        Require all granted
+        Require not env goaway
+    &lt;/RequireAll&gt;
+&lt;/Location&gt;</pre>
+
+    </dd>
+
+    <dt>Discussion:</dt>
+
+    <dd>
+      <p>Any technique that relies on the <code>USER_AGENT</code>
+      string can be trivially circumvented, since that string can be
+      changed by the client. If you are experiencing a sustained attack,
+      you should consider blocking it at a higher level, such as at your
+      firewall.</p>
+
+      <p>If you need to combine user-agent and IP address matching,
+      <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> can be used as a fallback:</p>
+
+<pre class="prettyprint lang-config">RewriteCond "%{HTTP_USER_AGENT}"   "^NameOfBadRobot"
+RewriteCond "%{REMOTE_ADDR}"       "=123\.45\.67\.[8-9]"
+RewriteRule "^/secret/files/"      "-"                   [F]</pre>
+
+
+    </dd>
+  </dl>
+
+</div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="host-deny">Denying Hosts in a Reject List <a title="Permanent link" href="#host-deny" class="permalink">&para;</a></h2>
+
+  
+
+  <dl>
+    <dt>Description:</dt>
+
+    <dd>
+      <p>We wish to maintain a list of hosts and have those hosts
+      blocked from accessing our server.</p>
+    </dd>
+
+    <dt>Solution:</dt>
+
+    <dd>
+      <p>For simple IP-based blocking, use
+      <code class="directive"><a href="../mod/mod_authz_host.html#require">Require</a></code> directly:</p>
+
+      <pre class="prettyprint lang-config">&lt;Location "/"&gt;
+    &lt;RequireAll&gt;
+        Require all granted
+        Require not ip 193.102.180.41
+        Require not ip 192.76.162.40
+    &lt;/RequireAll&gt;
+&lt;/Location&gt;</pre>
+
+    </dd>
+
+    <dt>Discussion:</dt>
+
+    <dd>
+      <p>If you need a dynamic, file-based deny list (rather than
+      enumerating addresses in the configuration), <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code>
+      with a <code class="directive"><a href="../mod/mod_rewrite.html#rewritemap">RewriteMap</a></code>
+      can be used:</p>
+
+<pre class="prettyprint lang-config">RewriteEngine on
+RewriteMap    hosts-deny  "txt:/path/to/hosts.deny"
+RewriteCond   "${hosts-deny:%{REMOTE_ADDR}|NOT-FOUND}" "!=NOT-FOUND" [OR]
+RewriteCond   "${hosts-deny:%{REMOTE_HOST}|NOT-FOUND}" "!=NOT-FOUND"
+RewriteRule   "^"                                      "-"           [F]</pre>
+
+
+      <p>The map file contains one entry per line, with IP addresses or
+      hostnames as keys and a dummy value (since
+      <code class="directive"><a href="../mod/mod_rewrite.html#rewritemap">RewriteMap</a></code> requires
+      key/value pairs):</p>
+
+<div class="example"><p><code>
+##  hosts.deny<br>
+193.102.180.41 -<br>
+192.76.162.40  -<br>
+</code></p></div>
+
+      <p>The second <code class="directive"><a href="../mod/mod_rewrite.html#rewritecond">RewriteCond</a></code>
+      assumes <code>HostnameLookups</code> is enabled. If not, drop it
+      and remove the <code>[OR]</code> flag from the first condition.</p>
+    </dd>
+  </dl>
+
+</div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="vhosts">Virtual Hosting <a title="Permanent link" href="#vhosts" class="permalink">&para;</a></h2>
+<p>Although it is possible to handle <a href="vhosts.html">virtual hosts
+with mod_rewrite</a>, it is seldom the right way. Creating individual
+<code class="directive"><a href="../mod/core.html#virtualhost">&lt;VirtualHost&gt;</a></code> blocks is
+almost always the right way to go. In the
+event that you have an enormous number of virtual hosts, consider using
+<code class="module"><a href="../mod/mod_vhost_alias.html">mod_vhost_alias</a></code> to create these hosts automatically.</p>
+
+<p>Modules such as <code class="module"><a href="../mod/mod_macro.html">mod_macro</a></code> are
+also useful for creating a large number of virtual hosts dynamically.</p>
+
+<p>Using <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> for vitualhost creation may be
+appropriate if you are using a hosting service that does not provide
+you access to the server configuration files, and you are therefore
+restricted to configuration using <code>.htaccess</code> files.</p>
+
+<p>See the <a href="vhosts.html">virtual hosts with mod_rewrite</a>
+document for more details on how you might accomplish this if it still
+seems like the right approach.</p>
+
+</div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="load-balancing">Load Balancing <a title="Permanent link" href="#load-balancing" class="permalink">&para;</a></h2>
+
+  
+
+  <dl>
+    <dt>Description:</dt>
+
+    <dd>
+      <p>We wish to distribute load across several back-end
+      servers.</p>
+    </dd>
+
+    <dt>Solution:</dt>
+
+    <dd>
+      <p>Use <code class="module"><a href="../mod/mod_proxy_balancer.html">mod_proxy_balancer</a></code>, which provides a
+      flexible and featureful load-balancing solution. It supports
+      several balancing algorithms, session stickiness, health checks,
+      and dynamic configuration via the Balancer Manager - none of which
+      are possible with a <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> approach.</p>
+
+<pre class="prettyprint lang-config">&lt;Proxy "balancer://mycluster"&gt;
+    BalancerMember "http://one.example.com"
+    BalancerMember "http://two.example.com"
+    BalancerMember "http://three.example.com"
+&lt;/Proxy&gt;
+ProxyPass        "/"  "balancer://mycluster/"
+ProxyPassReverse "/"  "balancer://mycluster/"</pre>
+
+
+    </dd>
+
+    <dt>Discussion:</dt>
+    <dd>
+
+<p>It is possible to accomplish rudimentary random load balancing using
+<code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> with a <code>rnd</code>
+<code class="directive"><a href="../mod/mod_rewrite.html#rewritemap">RewriteMap</a></code>:</p>
+
+<pre class="prettyprint lang-config">RewriteEngine on
+RewriteMap  lb       "rnd:/path/to/serverlist.txt"
+RewriteRule "^/(.*)" "http://${lb:servers}/$1"     [P,L]</pre>
+
+
+<p>However, <code class="module"><a href="../mod/mod_proxy_balancer.html">mod_proxy_balancer</a></code> is far more flexible and
+featureful than anything you can cobble together using
+<code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code>, and is the recommended approach.</p>
+
+    </dd>
+  </dl>
+
+</div></div>
+<div class="bottomlang">
+<p><span>Available Languages: </span><a href="../de/rewrite/avoid.html" hreflang="de" rel="alternate" title="Deutsch">&nbsp;de&nbsp;</a> |
+<a href="../en/rewrite/avoid.html" title="English">&nbsp;en&nbsp;</a> |
+<a href="../es/rewrite/avoid.html" hreflang="es" rel="alternate" title="Espa&ntilde;ol">&nbsp;es&nbsp;</a> |
+<a href="../fr/rewrite/avoid.html" hreflang="fr" rel="alternate" title="Fran&ccedil;ais">&nbsp;fr&nbsp;</a> |
+<a href="../ja/rewrite/avoid.html" hreflang="ja" rel="alternate" title="Japanese">&nbsp;ja&nbsp;</a> |
+<a href="../ko/rewrite/avoid.html" hreflang="ko" rel="alternate" title="Korean">&nbsp;ko&nbsp;</a> |
+<a href="../tr/rewrite/avoid.html" hreflang="tr" rel="alternate" title="T&uuml;rk&ccedil;e">&nbsp;tr&nbsp;</a> |
+<a href="../zh-cn/rewrite/avoid.html" hreflang="zh-cn" rel="alternate" title="Simplified Chinese">&nbsp;zh-cn&nbsp;</a></p>
+</div><div id="footer">
+<p class="apache">Copyright 2026 The Apache Software Foundation.<br>Licensed under the <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache License, Version 2.0</a>.</p>
+<p class="menu"><a href="../mod/">Modules</a> | <a href="../mod/quickreference.html">Directives</a> | <a href="https://cwiki.apache.org/confluence/display/httpd/FAQ">FAQ</a> | <a href="../glossary.html">Glossary</a> | <a href="../sitemap.html">Sitemap</a> | <a href="https://bz.apache.org/bugzilla/enter_bug.cgi?product=Apache%20httpd-2">Report a bug</a></p></div><script><!--//--><![CDATA[//><!--
+if (typeof(prettyPrint) !== 'undefined') {
+    prettyPrint();
+}
+var langToggle = document.querySelector('.lang-toggle');
+var topLang = document.querySelector('.toplang');
+if (langToggle && topLang) {
+    langToggle.addEventListener('click', function() { topLang.classList.toggle('open'); });
+}
+var qv = document.getElementById('quickview');
+if (qv) {
+    document.body.appendChild(qv);
+    var qvBtn = document.createElement('button');
+    qvBtn.className = 'qv-toggle';
+    qvBtn.setAttribute('aria-label', 'Toggle page navigation');
+    qvBtn.innerHTML = '&#9776;';
+    document.body.appendChild(qvBtn);
+    qvBtn.addEventListener('click', function() {
+        var isOpen = qv.classList.toggle('open');
+        if (isOpen) {
+            qv.style.top = window.scrollY + 10 + 'px';
+        }
+    });
+    window.addEventListener('scroll', function() { qv.classList.remove('open'); });
+}
+//--><!]]></script>
+</body></html>

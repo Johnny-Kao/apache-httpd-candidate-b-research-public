@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE manualpage SYSTEM "./style/manualpage.dtd">
+<?xml-stylesheet type="text/xsl" href="./style/manual.pt-br.xsl"?>
+<!-- English Revision: 1561569 -->
+<!-- Portuguese(BR) translation: leonardolara --><!-- Reviewed by: leonardolara -->
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<manualpage metafile="new_features_2_0.xml.meta">
+
+<title>Visão Geral das novas funcionalidades do Servidor HTTP Apache 2.0</title>
+
+<summary>
+  <p>Esse documento descreve algumas das mudanças principais entre as
+     versões 1.3 e 2.0 do Servidor HTTP Apache.</p>
+</summary>
+
+<seealso><a href="upgrading.html">Atualizando da versão 1.3 para a 2.0</a></seealso>
+
+  <section id="core">
+    <title>Principais Melhorias</title>
+
+    <dl>
+      <dt>Threads Unix</dt>
+
+      <dd>Em sistemas Unix com suporte a threads POSIX, o Apache httpd agora
+      pode funcionar em um modo híbrido multiprocessos e multithreads. Isto melhora
+      a escalabilidade para muitos mas não para todas as configurações.</dd>
+
+      <dt>Novo Sistema de Compilação</dt>
+
+      <dd>O sistema de compilação foi reescrito do zero para utilizar o
+      <code>autoconf</code> e o <code>libtool</code>, tornando o
+      sistema de configuração do Apache httpd mais similar a
+      de outros pacotes.</dd>
+
+      <dt>Suporte Multi-protocolo</dt>
+
+      <dd>O Servidor HTTP Apache possui agora infraestrutura para
+      suportar múltiplos protocolos. O módulo <module>mod_echo</module> é
+      exemplo ilustrativo de sua utilização.</dd>
+
+      <dt>Suporte aperfeiçoado para plataformas
+      não-Unix</dt>
+
+      <dd>O Servidor HTTP Apache 2.0 é mais rápido e mas estável em plataformas
+      não-Unix como BeOS, OS/2 e Windows. Com a
+      introdução de <a
+      href="mpm.html">módulos de multi-processamento</a> específicos por plataforma (MPMs) e o
+      Apache Portable Runtime (APR), essas plataformas agora estão
+      implementadas em suas API nativas, evitando as camadas de emulação POSIX que muitas vezes se
+      defeituosas e com baixo desempenho.</dd>
+
+      <dt>Nova API httpd Apache</dt>
+
+      <dd>A API para módulos mudou significativamente na versão 2.0.
+      Muitos dos problemas de ordenação/prioridade de módulos da versão
+      1.3 foram resolvidos. A 2.0 faz muito disso automaticamente e a ordenação de módulos
+      agora é feita através de ganchos para permitir mais flexibilidade. Além disso, novas chamadas
+      foram adicionadas para fornecer capacidades adicionais de módulos
+      sem a necessidade de se aplicar patches ao núcleo do Servidor HTTP Apache.</dd>
+
+      <dt>Suporte IPv6</dt>
+
+      <dd>Em sistemas onde o IPv6 é suportado pela biblioteca subjacente
+      do Apache Portable Runtime, o httpd Apache monitora sockets
+      IPv6 por padrão. Adicionalmente, as diretivas <directive
+      module="mpm_common">Listen</directive>, <directive module="core"
+      >NameVirtualHost</directive> e <directive module="core"
+      >VirtualHost</directive> suportam strings de
+      endereço numérico IPv6 (ex.: "<code>Listen
+      [2001:db8::1]:8080</code>").</dd>
+
+      <dt>Filtros</dt>
+
+      <dd>Os módulos do Apache agora podem ser escritos como filtros que atuam
+      no fluxo de conteúdo à medida que este é entregue ou recebido do
+      do servidor. Isto permite, por exemplo, que a saída de scripts CGI seja
+      analisada para encontrar diretivas "Server Side Include" usando o
+      filtro <code>INCLUDES</code> de <module>mod_include</module>. O
+      módulo <module>mod_ext_filter</module> permite que programas externos
+      atuem como filtros do mesmo modo que aplicações CGI podem atuar como
+      manipuladores.</dd>
+
+      <dt>Respostas de Erro Multi-linguais</dt>
+
+      <dd>Mensagens de respostas de erro para o navegador agora são fornecidas em
+      diversas línguas, usando documentos SSI. Podem ser personalizadas
+      pelo administrador para atingir uma aparência consistente.</dd>
+
+      <dt>Configuração Simplificada</dt>
+
+      <dd>Muitas diretivas confusas foram simplificadas. Entre elas,
+      <code>Port</code> e <code>BindAddress</code> não existem
+      mais; apenas a diretiva <directive module="mpm_common">Listen</directive>
+      é usada para vinculação de endereço IP; a diretiva <directive
+      module="core">ServerName</directive> especifica o
+      nome do servidor e o número da porta apenas para redirecionamento e reconhecimento
+      de hosts virtuais.</dd>
+
+      <dt>Suporte Nativo ao Unicode do Windows NT</dt>
+
+      <dd>O Apache httpd 2.0 para Windows NT agora usa UTF-8 para codificação
+      de todos os nomes de arquivos que são traduzidos diretamente para o sistemas de Arquivos
+      Unicode subjacente, fornecendo suporte multi-lingual para todas
+      as versões Windows da família NT, incluindo Windows 2000 e Windows XP.
+      <em>Este suporte não se estende ao Windows 95, 98 ou ME, que
+      continuam usando o código de página local da máquina para
+      acesso ao sistema de arquivos.</em></dd>
+
+      <dt>Biblioteca de Expressões Regulares Atualizada</dt>
+
+      <dd>O Apache httpd 2.0 inclui a <a href="http://www.pcre.org/">Biblioteca
+      de Expressões Regulares Compatível com Perl</a> (PCRE).  Todas as
+      análises de expressões regulares agoram usam a sintaxe mais poderosa
+      do Perl 5.</dd>
+
+    </dl>
+  </section>
+
+  <section id="module">
+    <title>Melhorias nos Módulos</title>
+
+    <dl>
+      <dt><module>mod_ssl</module></dt>
+
+      <dd>Novo módulo no Apache httpd 2.0. Este módulo é uma interface
+      para os protocolos de codificação SSL/TLS fornecidos pelo
+      OpenSSL.</dd>
+
+      <dt><module>mod_dav</module></dt>
+
+      <dd>Novo módulo no Apache httpd 2.0. Este módulo implementa as
+      especificações de Autoria e Versionamento Distribuídas (DAV) para
+      para publicação e manutenção de conteúdo web.</dd>
+
+      <dt><module>mod_deflate</module></dt>
+
+      <dd>Novo módulo no Apache httpd 2.0. Este módulo permite suporte
+      a navegadores que solicitam que o conteúdo seja comprimido antes da entrega,
+      economizando tráfego de rede.</dd>
+
+      <dt><module>mod_auth_ldap</module></dt>
+
+      <dd>Novo módulo no Apache httpd 2.0.41. Este módulo permite que
+      um banco de dados LDAP seja usados para armazenar credenciais para Autenticação
+      Básica Básica HTTP. Um módulo que o acompanha, <module>mod_ldap</module>,
+      fornece o gerenciamento de grupos de conexões e armazenamento de resultados em cache.</dd>
+
+      <dt><module>mod_auth_digest</module></dt>
+
+      <dd>Inclui suporte adicional para armazenamento de sessões em cache
+      através de processos que usam memória compartilhada.</dd>
+
+      <dt><module>mod_charset_lite</module></dt>
+
+      <dd>Novo módulo no Apache httpd 2.0. Este módulo experimental permite
+      tradução ou recodificação de conjuntos de caracteres.</dd>
+
+      <dt><module>mod_file_cache</module></dt>
+
+      <dd>Novo módulo no Apache httpd 2.0. Esse módulo inclui a
+      funcionalidade do <code>mod_mmap_static</code> do Servidor HTTP
+      Apache versão 1.3 e disponibiliza outras habilidades de armazenamento em cache.</dd>
+
+      <dt><module>mod_headers</module></dt>
+
+      <dd>Este módulo é muito mais flexível no Apache httpd 2.0. Ele pode agora
+      modificar cabeçalhos de requisição usados pelo <module>mod_proxy</module> e
+      pode ajustar cabeçalhos de resposta sob certas condições.</dd>
+
+      <dt><module>mod_proxy</module></dt>
+
+      <dd>O módulo de proxy foi totalmente reescrito para tomar
+      vantagem da nova infraestrutura de filtros e para implementar um
+      proxy mais confiável e compatível com o padrão HTTP/1.1. Além disso, novas
+      seções de configuração <directive module="mod_proxy" type="section">Proxy</directive>
+      fornecem controles mais legíveis (e internamente
+      mais rápidos) de sites com proxies; configurações
+      sobrecarregadas <code>&lt;Directory "proxy:..."&gt;</code> não são suportadas.
+      O módulo agora é dividido módulos de suporte a protocolos específicos
+      incluindo <code>proxy_connect</code>, <code>proxy_ftp</code> e
+      <code>proxy_http</code>.</dd>
+
+      <dt><module>mod_negotiation</module></dt>
+
+      <dd>A nova diretiva <directive module="mod_negotiation"
+      >ForceLanguagePriority</directive> pode ser usada para assegurar que
+      o cliente receba um único documento em todos os casos, em vez de
+      respostas como "NOT ACCEPTABLE" ou "MULTIPLE CHOICES". Adicionalmente, os algoritmos
+      de negociação e visualizações múltiplas foram organizados para
+      fornecer resultados mais consistentes e foi disponibilizado uma nova forma de
+      mapa de tipo que pode incluir conteúdo de documentos.</dd>
+
+      <dt><module>mod_autoindex</module></dt>
+
+      <dd>As listagens de diretórios autoindexadas agora podem ser configuradas
+      para usar tabelas HTML para formatações mais limpas e permitir controles
+      mais finos de ordenação, incluindo ordenação por versão e filtragem da listagem de
+      diretórios através de caracteres-coringa.</dd>
+
+      <dt><module>mod_include</module></dt>
+
+      <dd>Novas diretivas permitem que as tags padrões de início e fim para elementos
+      SSI possam ser alteradas e permitem que a configuração de formato de erro e horário
+      ocorra no arquivo de configuração principal em vez de ocorrerem
+      no documento SSI. Resultados de análises de expressões regulares e agrupamento
+      (agora baseadas na sintaxe de expressões regulares do Perl) podem ser obtidas
+      usando as variáveis do módulo <module>mod_include</module>: <code>$0</code>
+      .. <code>$9</code>.</dd>
+
+      <dt><module>mod_auth_dbm</module></dt>
+
+      <dd>Agora suporta múltiplos tipos de banco de dados similares ao DBM usando a
+      diretiva <directive>AuthDBMType</directive>.</dd>
+
+    </dl>
+  </section>
+</manualpage>

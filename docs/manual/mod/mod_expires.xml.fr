@@ -1,0 +1,264 @@
+<?xml version="1.0"?>
+<!DOCTYPE modulesynopsis SYSTEM "../style/modulesynopsis.dtd">
+<?xml-stylesheet type="text/xsl" href="../style/manual.fr.xsl"?>
+<!-- English Revision: 1933749 -->
+<!-- French translation : Lucien GENTIS -->
+<!-- Reviewed by : Vincent Deffontaines -->
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<modulesynopsis metafile="mod_expires.xml.meta">
+
+<name>mod_expires</name>
+<description>Génération des en-têtes HTTP <code>Expires</code> et
+<code>Cache-Control</code> en fonction de critères spécifiés par
+l'utilisateur</description>
+<status>Extension</status>
+<sourcefile>mod_expires.c</sourcefile>
+<identifier>expires_module</identifier>
+
+<summary>
+    <p>Ce module permet de contrôler la définition de l'en-tête HTTP
+    <code>Expires</code> et la directive <code>max-age</code> de
+    l'en-tête HTTP <code>Cache-Control</code> dans les réponses du
+    serveur. La date d'expiration peut être définie soit par rapport à
+    la date de dernière modification du fichier source, soit
+    par rapport à l'heure d'accès du client.</p>
+
+    <p>Ces en-têtes HTTP permettent d'informer le client quant à la
+    validité et à la persistence du document. S'il est présent dans le
+    cache, et tant qu'il n'est pas arrivé à expiration, le document sera
+    servi à partir de ce dernier, plutôt qu'à partir du document source.
+    Après expiration, la copie du document dans le cache sera considérée
+    comme "expirée" et donc invalide, et une nouvelle copie devra être
+    obtenue à partir du document source.</p>
+
+    <p>Pour modifier les directives de contrôle du cache autres
+    que <code>max-age</code> (voir la <rfc section="14.9">2616</rfc>,
+    section 14.9)), vous pouvez utiliser la directive <directive
+    module="mod_headers">Header</directive>.</p>
+
+    <p>Lorsque l'en-tête <code>Expires</code> est déjà présent dans la
+    réponse générée par le serveur, par exemple s'il a été créé par un
+    script CGI ou un serveur original via un serveur mandataire, ce
+    module n'ajoute aucun en-tête <code>Expires</code> ou
+    <code>Cache-Control</code>.</p>
+</summary>
+
+<section id="AltSyn"><title>Autre syntaxe de définition de
+l'intervalle</title>
+    <p>Pour une syntaxe plus lisible, on peut aussi utiliser les
+    directives <directive
+    module="mod_expires">ExpiresDefault</directive> et <directive
+    module="mod_expires">ExpiresByType</directive> comme suit :</p>
+
+    <highlight language="config">
+ExpiresDefault "<var>base</var>  [plus <var>num</var> <var>type</var>] [<var>num</var> <var>type</var>] ..."
+ExpiresByType type/encoding "<var>base</var>  [plus <var>num</var> <var>type</var>] [<var>num</var> <var>type</var>] ..."
+    </highlight>
+
+    <p>où <var>base</var> peut être :</p>
+
+    <ul>
+      <li><code>access</code></li>
+
+      <li><code>now</code> (équivalent à
+      '<code>access</code>')</li>
+
+      <li><code>modification</code></li>
+    </ul>
+
+    <p>Le mot-clé <code>plus</code> est optionnel. <var>num</var> doit
+    correspondre à une valeur entière [compatible avec
+    <code>atoi()</code>], et <var>type</var> peut être choisi parmi :</p>
+
+    <ul>
+      <li><code>years</code></li>
+      <li><code>months</code></li>
+      <li><code>weeks</code></li>
+      <li><code>days</code></li>
+      <li><code>hours</code></li>
+      <li><code>minutes</code></li>
+      <li><code>seconds</code></li>
+    </ul>
+
+    <p>Par exemple, pour faire expirer par défaut les documents 1 mois
+    après leur accès, on peut utiliser une des directives suivantes :</p>
+    <highlight language="config">
+ExpiresDefault "access plus 1 month"
+ExpiresDefault "access plus 4 weeks"
+ExpiresDefault "access plus 30 days"
+    </highlight>
+
+
+    <p>La date d'expiration peut être définie plus précisément en
+    ajoutant plusieurs clauses '<var>num</var> <var>type</var>' :</p>
+
+    <highlight language="config">
+ExpiresByType text/html "access plus 1 month 15 days 2 hours"
+ExpiresByType image/gif "modification plus 5 hours 3 minutes"
+    </highlight>
+
+    <p>Notez que si vous utilisez une configuration basée sur la date de
+    modification, l'en-tête Expires ne sera pas ajouté à un contenu qui
+    ne provient pas directement d'un fichier sur disque ; et ceci tout
+    simplement parce que ce type de contenu ne possède pas de date de
+    modification.</p>
+</section>
+
+<directivesynopsis>
+<name>ExpiresActive</name>
+<description>Active la génération d'en-têtes
+<code>Expires</code></description>
+<syntax>ExpiresActive On|Off</syntax>
+<default>ExpiresActive Off</default>
+<contextlist><context>server config</context>
+<context>virtual host</context><context>directory</context>
+<context>.htaccess</context></contextlist>
+<override>Indexes</override>
+
+<usage>
+    <p>Cette directive permet d'activer ou de désactiver la génération
+    des en-têtes <code>Expires</code> et <code>Cache-Control</code> pour
+    les documents concernés ; en d'autres termes, si cette directive se
+    trouve dans un fichier <code>.htaccess</code>, par exemple, elle ne
+    s'applique qu'aux documents générés à partir du répertoire
+    considéré. Si elle est définie à <code>Off</code>, les en-têtes ne
+    seront générés pour aucun document du domaine considéré (sauf
+    surcharge de la configuration à un niveau inférieur, comme un
+    fichier <code>.htaccess</code> qui l'emporterait sur le fichier de
+    configuration du serveur). Si elle est définie à <code>On</code>,
+    les en-têtes seront ajoutés aux documents servis en fonction des
+    critères définis par les directives <directive
+    module="mod_expires">ExpiresByType</directive> et <directive
+    module="mod_expires">ExpiresDefault</directive> (<em>voir plus
+    loin</em>).</p>
+
+    <p>Notez que cette directive ne permet pas de garantir qu'un en-tête
+    <code>Expires</code> ou <code>Cache-Control</code> sera généré. Si
+    les critères ne sont pas respectés, aucun en-tête ne sera généré, et
+    la directive produira le même effet que si elle n'avait pas été
+    définie.</p>
+ </usage>
+</directivesynopsis>
+
+<directivesynopsis>
+<name>ExpiresByType</name>
+<description>Définition de la valeur de l'en-tête <code>Expires</code>
+en fonction du type MIME</description>
+<syntax>ExpiresByType <var>type MIME</var>
+<var>&lt;code&gt;secondes</var></syntax>
+<contextlist><context>server config</context><context>virtual host</context>
+<context>directory</context><context>.htaccess</context></contextlist>
+<override>Indexes</override>
+
+<usage>
+    <p>Cette directive permet de définir la valeur de l'en-tête
+    <code>Expires</code> et de la directive <code>max-age</code> de
+    l'en-tête <code>Cache-Control</code> générés pour les documents du
+    type MIME spécifié (par exemple, <code>text/html</code>). Le second
+    argument définit le nombre de secondes qui seront ajoutées à un
+    temps de base pour calculer la date d'expiration.
+    <code>Cache-Control: max-age</code> se calcule en soustrayant la
+    date de la requête de la date d'expiration et s'exprime en
+    secondes.</p>
+
+    <p>Le champ <code><var>&lt;code&gt;</var></code> permet de spécifier
+    quel temps doit être utilisé comme temps de base; <code>M</code>
+    signifie que c'est la date
+    de dernière modification du fichier qui doit être utilisée comme
+    temps de base, alors que <code>A</code> signifie que c'est le moment
+    où le client a accédé au document qui doit être utilisé comme temps
+    de base.</p>
+
+    <p>La différence d'effet est subtile. Si on utilise <code>M</code>,
+    toutes les copies existantes du document dans tous les caches
+    expireront au même moment, ce qui peut convenir par exemple pour une
+    notice hebdomadaire qui correspond toujours à la même URL. Si on
+    utilise <code>A</code>, la date d'expiration sera différente pour
+    chaque client, ce qui peut convenir pour des fichiers d'images qui
+    ne changent pas très souvent, et en particulier pour un ensemble de
+    documents en relation qui se réfèrent tous aux mêmes images (ces
+    images sont alors accédées de manière répétitive dans un intervalle
+    de temps assez court).</p>
+
+    <example><title>Exemple :</title>
+      <highlight language="config">
+# active la génération des en-têtes Expires
+ExpiresActive On
+# les images GIF expirent au bout d'un mois dans le cache du
+# client
+ExpiresByType image/gif A2592000
+# les documents HTML restent valables une semaine après leur date
+# de dernière modification
+ExpiresByType text/html M604800
+      </highlight>
+    </example>
+
+    <p>Notez que cette directive ne produit d'effet que si
+    <code>ExpiresActive On</code> a été spécifié. Elle l'emporte, mais
+    <em>seulement</em> pour le type MIME spécifié, sur toute date
+    d'expiration définie par la directive <directive
+    module="mod_expires">ExpiresDefault</directive>.</p>
+
+    <p>Vous pouvez aussi définir le mode de calcul de la date
+    d'expiration en utilisant une <a href="#AltSyn">syntaxe
+    alternative</a>, comme décrit plus haut dans ce document.</p>
+
+    <p>Le type MIME peut utiliser des caractères génériques pour le sous-type,
+    comme dans <code>image/*</code>. Cet exemple correspond à tout sous-type
+    sous le type principal. Lorsque le type de contenu d'une requête ne
+    correspond pas à une entrée <directive>ExpiresByType</directive> spécifique,
+    une entrée avec caractères génériques pour le type principal est recherchée
+    avant de se rebattre sur <directive
+    module="mod_expires">ExpiresDefault</directive>.</p>
+
+    <example><title>Exemple avec caractères génériques ::</title>
+    <highlight language="config">
+ExpiresActive On
+# Toutes les images sont périmées après 1 mois
+ExpiresByType image/* "access plus 1 month"
+# Override specifically for GIF
+ExpiresByType image/gif "access plus 1 week"
+    </highlight>
+    </example>
+</usage>
+</directivesynopsis>
+
+<directivesynopsis>
+<name>ExpiresDefault</name>
+<description>Mode de calcul par défaut de la date
+d'expiration</description>
+<syntax>ExpiresDefault <var>&lt;code&gt;secondes</var></syntax>
+<contextlist><context>server config</context><context>virtual host</context>
+<context>directory</context><context>.htaccess</context></contextlist>
+<override>Indexes</override>
+
+<usage>
+    <p>Cette directive permet de définir le mode de calcul par défaut de
+    la date d'expiration pour tous les documents du domaine considéré.
+    Elle peut être annulée pour certains types de documents par la
+    directive <directive
+    module="mod_expires">ExpiresByType</directive>. Voir la description
+    de cette dernière directive pour plus de détails à propos de la
+    syntaxe de l'argument, ainsi que la description de la <a
+    href="#AltSyn">syntaxe alternative</a>.</p>
+</usage>
+</directivesynopsis>
+</modulesynopsis>
+

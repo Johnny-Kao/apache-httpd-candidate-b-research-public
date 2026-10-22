@@ -1,0 +1,93 @@
+<?xml version="1.0"?>
+<!DOCTYPE modulesynopsis SYSTEM "../style/modulesynopsis.dtd">
+<?xml-stylesheet type="text/xsl" href="../style/manual.fr.xsl"?>
+<!-- English Revision: 1933502 -->
+<!-- French translation : Lucien GENTIS -->
+<!-- Reviewed by : Vincent Deffontaines -->
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<modulesynopsis metafile="mod_ident.xml.meta">
+
+<name>mod_ident</name>
+<description>Recherche d'identité conformément à la RFC
+1413</description>
+<status>Extension</status>
+<sourcefile>mod_ident.c</sourcefile>
+<identifier>ident_module</identifier>
+
+<summary>
+    <p>Ce module interroge un démon compatible <rfc>1413</rfc> sur un serveur
+    distant afin de déterminer le propriétaire d'une connexion.</p>
+</summary>
+<seealso><module>mod_log_config</module></seealso>
+
+<directivesynopsis>
+<name>IdentityCheck</name>
+<description>Active la journalisation de l'identité RFC 1413 de
+l'utilisateur distant</description>
+<syntax>IdentityCheck On|Off</syntax>
+<default>IdentityCheck Off</default>
+<contextlist><context>server config</context><context>virtual host</context>
+<context>directory</context></contextlist>
+
+<usage>
+    <p>Cette directive permet d'activer la journalisation compatible
+    <rfc>1413</rfc> du nom de l'utilisateur distant pour chaque connexion, si la
+    machine du client exécute identd ou un démon similaire. Cette information
+    est enregistrée dans le journal des accès en utilisant la <a
+    href="mod_log_config.html#formats">chaîne de formatage</a>
+    <code>%...l</code>.</p>
+
+    <note>
+      Cette information ne doit pas faire l'objet d'une confiance
+      absolue, et elle ne doit être utilisée que dans le cadre d'un
+      traçage grossier.
+    </note>
+
+    <p>Notez que de sérieux problèmes de délais peuvent survenir lors
+    des accès à votre serveur, car chaque requête nécessite l'exécution
+    d'un de ces processus de recherche. Lorsque des pare-feu ou des
+    serveurs mandataires sont impliqués, chaque recherche est
+    susceptible d'échouer et ajouter un temps de latence conformément
+    à la directive <directive
+    module="mod_ident">IdentityCheckTimeout</directive>. En général, ces
+    recherches ne se révèlent donc pas très utiles sur des serveurs
+    publics accessibles depuis l'Internet.</p>
+</usage>
+</directivesynopsis>
+
+<directivesynopsis>
+<name>IdentityCheckTimeout</name>
+<description>Détermine le délai d'attente pour les requêtes
+ident</description>
+<syntax>IdentityCheckTimeout <var>secondes</var></syntax>
+<default>IdentityCheckTimeout 30</default>
+<contextlist><context>server config</context><context>virtual host</context>
+<context>directory</context></contextlist>
+<usage>
+    <p>Cette directive permet de spécifier le délai d'attente d'une requête
+    ident. Une valeur par défaut de 30 secondes est recommandée par la
+    <rfc>1413</rfc>, principalement pour prévenir les problèmes qui pourraient
+    être induits par la charge du réseau. Vous pouvez cependant ajuster la
+    valeur de ce délai en fonction du débit de votre réseau local.</p>
+</usage>
+</directivesynopsis>
+
+</modulesynopsis>
+

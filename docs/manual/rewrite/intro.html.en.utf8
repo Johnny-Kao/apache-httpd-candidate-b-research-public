@@ -1,0 +1,532 @@
+<!DOCTYPE html SYSTEM "about:legacy-compat">
+<html lang="en"><head><META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<!--
+        XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+              This file is generated from xml source: DO NOT EDIT
+        XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      -->
+<title>Apache mod_rewrite Introduction - Apache HTTP Server Version 2.5</title>
+<link href="../style/css/manual.css" rel="stylesheet" media="all" type="text/css" title="Main stylesheet">
+<link href="../style/css/manual-loose-100pc.css" rel="alternate stylesheet" media="all" type="text/css" title="No Sidebar - Default font size">
+<link href="../style/css/manual-print.css" rel="stylesheet" media="print" type="text/css"><link rel="stylesheet" type="text/css" href="../style/css/prettify.css">
+<script src="../style/scripts/prettify.min.js">
+</script>
+
+<link href="../images/favicon.png" rel="shortcut icon"></head>
+<body id="manual-page"><div id="page-header">
+<p class="menu"><a href="../mod/">Modules</a> | <a href="../mod/quickreference.html">Directives</a> | <a href="https://cwiki.apache.org/confluence/display/httpd/FAQ">FAQ</a> | <a href="../glossary.html">Glossary</a> | <a href="../sitemap.html">Sitemap</a> | <a href="https://bz.apache.org/bugzilla/enter_bug.cgi?product=Apache%20httpd-2">Report a bug</a></p>
+<p class="apache">Apache HTTP Server Version 2.5</p>
+<img alt="" src="../images/feather.png"></div>
+<div class="up"><a href="./"><img title="<-" alt="<-" src="../images/left.gif"></a></div>
+<div id="path">
+<a href="https://www.apache.org/">Apache</a> &gt; <a href="https://httpd.apache.org/">HTTP Server</a> &gt; <a href="https://httpd.apache.org/docs/">Documentation</a> &gt; <a href="../">Version 2.5</a> &gt; <a href="./">Rewrite</a></div><div id="page-content"><div id="preamble"><h1>Apache mod_rewrite Introduction</h1>
+<button aria-label="Toggle language list" class="lang-toggle"><svg xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke="currentColor" fill="none" viewBox="0 0 24 24" height="16" width="16"><circle r="10" cy="12" cx="12"/><line y2="12" x2="22" y1="12" x1="2"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></button>
+<div class="toplang">
+<p><span>Available Languages: </span><a href="../de/rewrite/intro.html" hreflang="de" rel="alternate" title="Deutsch">&nbsp;de&nbsp;</a> |
+<a href="../en/rewrite/intro.html" title="English">&nbsp;en&nbsp;</a> |
+<a href="../es/rewrite/intro.html" hreflang="es" rel="alternate" title="Espa&ntilde;ol">&nbsp;es&nbsp;</a> |
+<a href="../fr/rewrite/intro.html" hreflang="fr" rel="alternate" title="Fran&ccedil;ais">&nbsp;fr&nbsp;</a> |
+<a href="../ja/rewrite/intro.html" hreflang="ja" rel="alternate" title="Japanese">&nbsp;ja&nbsp;</a> |
+<a href="../ko/rewrite/intro.html" hreflang="ko" rel="alternate" title="Korean">&nbsp;ko&nbsp;</a> |
+<a href="../tr/rewrite/intro.html" hreflang="tr" rel="alternate" title="T&uuml;rk&ccedil;e">&nbsp;tr&nbsp;</a> |
+<a href="../zh-cn/rewrite/intro.html" hreflang="zh-cn" rel="alternate" title="Simplified Chinese">&nbsp;zh-cn&nbsp;</a></p>
+</div>
+
+<p>This document supplements the <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code>
+<a href="../mod/mod_rewrite.html">reference documentation</a>. It
+describes the basic concepts necessary for use of
+<code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code>. Other documents go into greater detail,
+but this doc should help the beginner get their feet wet.
+</p>
+</div>
+<div id="quickview"><ul id="toc"><li><img alt="" src="../images/down.gif"> <a href="#introduction">Introduction</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#regex">Regular Expressions</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#rewriterule">RewriteRule Basics</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#flags">Rewrite Flags</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#rewritecond">Rewrite Conditions</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#rewritemap">Rewrite maps</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#htaccess">.htaccess files</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#security">Security Considerations</a></li>
+</ul><h3>See also</h3><ul class="seealso"><li><a href="../mod/mod_rewrite.html">Module documentation</a></li><li><a href="remapping.html">Redirection and remapping</a></li><li><a href="htaccess.html">Per-directory Rewrites</a></li><li><a href="flags.html">RewriteRule Flags</a></li><li><a href="vhosts.html">Virtual hosts</a></li><li><a href="rewritemap.html">Using RewriteMap</a></li><li><a href="avoid.html">When not to use mod_rewrite</a></li><li><a href="tech.html">Technical details</a></li></ul></div>
+<div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="introduction">Introduction <a title="Permanent link" href="#introduction" class="permalink">&para;</a></h2>
+<p>The Apache module <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> is a very powerful and
+sophisticated module which provides a way to do URL manipulations. With
+it, you can do nearly all types of URL rewriting that you may need. It
+is, however, somewhat complex, and may be intimidating to the beginner.
+There is also a tendency to treat rewrite rules as magic incantation,
+using them without actually understanding what they do.</p>
+
+<p>This document attempts to give sufficient background so that what
+follows is understood, rather than just copied blindly.
+</p>
+
+<p>Remember that many common URL-manipulation tasks don't require the
+full power and complexity of <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code>. For simple
+tasks, see <code class="module"><a href="../mod/mod_alias.html">mod_alias</a></code> and the documentation
+on <a href="../urlmapping.html">mapping URLs to the
+filesystem</a>.</p>
+
+<p>Finally, before proceeding, be sure to configure
+<code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code>'s log level to one of the trace levels using
+the <code class="directive"><a href="../mod/core.html#loglevel">LogLevel</a></code> directive. Although this
+can give an overwhelming amount of information, it is indispensable in
+debugging problems with <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> configuration, since
+it will tell you exactly how each rule is processed.</p>
+
+<p class="figure">
+      <img src="../images/rewrite_simplified_overview.png" alt="Simplified flowchart of mod_rewrite processing: request           arrives, check RewriteEngine On, iterate rules in order,           test pattern match and RewriteCond, apply substitution if           both pass, stop if L or END flag is set, otherwise continue           to next rule"><br>
+      <dfn>Figure:</dfn> Simplified overview of how
+      <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> processes a request. See
+      <a href="tech.html">Technical Details</a> for the full
+      processing model including phases, flags, and looping.
+</p>
+
+</div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="regex">Regular Expressions <a title="Permanent link" href="#regex" class="permalink">&para;</a></h2>
+
+<p><code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> uses the <a href="https://www.pcre.org/current/doc/html/pcre2syntax.html">Perl Compatible
+Regular Expressions</a> vocabulary, via the PCRE2 library. In this document, we do not attempt
+to provide a detailed reference to regular expressions. For that, we
+recommend the <a href="https://www.pcre.org/current/doc/html/pcre2syntax.html">PCRE2 documentation</a>, the
+<a href="https://perldoc.perl.org/perlre">Perl regular
+expressions man page</a>, and <a href="https://www.oreilly.com/library/view/mastering-regular-expressions/0596528124/">Mastering
+Regular Expressions, by Jeffrey Friedl</a> (the third edition is from
+2006, but regular expression syntax is essentially unchanged, and this
+remains the definitive reference on the subject).</p>
+
+<p>In this document, we attempt to provide enough of a regex vocabulary
+to get you started, without being overwhelming, in the hope that
+<code class="directive"><a href="../mod/mod_rewrite.html#rewriterule">RewriteRule</a></code>s will be scientific
+formulae, rather than magical incantations.</p>
+
+<h3 id="regexvocab">Regex vocabulary</h3>
+
+<p>The following are the minimal building blocks you will need, in order
+to write regular expressions and <code class="directive"><a href="../mod/mod_rewrite.html#rewriterule">RewriteRule</a></code>s. They certainly do not
+represent a complete regular expression vocabulary, but they are a good
+place to start, and should help you read basic regular expressions, as
+well as write your own.</p>
+
+<table>
+<tr>
+<th>Character</th>
+<th>Meaning</th>
+<th>Example</th>
+</tr>
+
+<tr>
+    <td><code>.</code></td>
+    <td>Matches any single character</td>
+    <td><code>c.t</code> will match <code>cat</code>, <code>cot</code>,
+      <code>cut</code>, etc</td>
+</tr>
+<tr>
+    <td><code>+</code></td>
+    <td>Repeats the previous match one or more times</td>
+    <td><code>a+</code> matches <code>a</code>, <code>aa</code>,
+      <code>aaa</code>, etc</td>
+</tr>
+<tr>
+    <td><code>*</code></td>
+    <td>Repeats the previous match zero or more times</td>
+    <td><code>a*</code> matches all the same things <code>a+</code> matches,
+      but will also match an empty string</td>
+</tr>
+<tr>
+    <td><code>?</code></td>
+    <td>Makes the match optional</td>
+    <td><code>colou?r</code> will match <code>color</code> and
+    <code>colour</code></td>
+</tr>
+<tr>
+    <td><code>\</code></td>
+    <td>Escape the next character</td>
+    <td><code>\.</code> will match <code>.</code> (dot) and not <em>any single
+    character</em> as explain above</td>
+</tr>
+<tr>
+    <td><code>^</code></td>
+    <td>Called an anchor, matches the beginning of the string</td>
+    <td><code>^a</code> matches a string that begins with <code>a</code></td>
+</tr>
+<tr>
+    <td><code>$</code></td>
+    <td>The other anchor, this matches the end of the string</td>
+    <td><code>a$</code> matches a string that ends with <code>a</code></td>
+</tr>
+<tr>
+    <td><code>( )</code></td>
+    <td>Groups several characters into a single unit, and captures a match
+      for use in a backreference</td>
+    <td><code>(ab)+</code> matches <code>ababab</code> - that is, the
+      <code>+</code> applies to the group. For more on backreferences see
+      <a href="#InternalBackRefs">below</a></td>
+</tr>
+<tr>
+    <td><code>[ ]</code></td>
+    <td>A character class - matches one of the characters</td>
+    <td><code>c[uoa]t</code> matches <code>cut</code>, <code>cot</code> or
+      <code>cat</code></td>
+</tr>
+<tr>
+    <td><code>[^ ]</code></td>
+    <td>Negative character class - matches any character not specified</td>
+    <td><code>c[^/]t</code> matches <code>cat</code> or <code>c=t</code> but
+      not <code>c/t</code></td></tr>
+</table>
+
+<p>The <code>!</code> (Not) character can be
+used before a regular expression to negate it. This is, a string will
+be considered to have matched only if it does not match the rest of
+the expression.</p>
+
+<p>When using <code>!</code> to negate a pattern, note that
+<a href="#InternalBackRefs">backreferences</a> (e.g.
+<code>$1</code>, <code>$2</code>) are not available, since the
+pattern does not match.</p>
+
+<p>For example, the following will redirect any request that does
+<em>not</em> start with <code>/admin</code></p>
+
+<pre class="prettyprint lang-config">RewriteRule "!^/admin" "/xyz.html" [R,L]</pre>
+
+
+
+
+<h3 id="InternalBackRefs">Regex Back-Reference Availability</h3>
+
+      <p>One important thing here has to be remembered: Whenever you
+      use parentheses in <em>Pattern</em> or in one of the
+      <em>CondPattern</em>, back-references are internally created
+      which can be used with the strings <code>$N</code> and
+      <code>%N</code> (see below). These are available for creating
+      the <em>Substitution</em> parameter of a
+      <code class="directive"><a href="../mod/mod_rewrite.html#rewriterule">RewriteRule</a></code> or
+      the <em>TestString</em> parameter of a
+      <code class="directive"><a href="../mod/mod_rewrite.html#rewritecond">RewriteCond</a></code>.</p>
+      <p>  Captures in the <code class="directive"><a href="../mod/mod_rewrite.html#rewriterule">RewriteRule</a></code> patterns are (counterintuitively) available to
+       all preceding
+      <code class="directive"><a href="../mod/mod_rewrite.html#rewritecond">RewriteCond</a></code> directives,
+      because the <code class="directive"><a href="../mod/mod_rewrite.html#rewriterule">RewriteRule</a></code>
+      expression is evaluated before the individual conditions.</p>
+
+      <p>Figure 1 shows to which
+      locations the back-references are transferred for expansion as
+      well as illustrating the flow of the RewriteRule, RewriteCond
+      matching. In the next chapters, we will be exploring how to use
+      these back-references, so do not fret if it seems a bit alien
+      to you at first.
+      </p>
+
+<p class="figure">
+      <img src="../images/rewrite_backreferences.png" alt="Diagram showing how backreferences flow between       RewriteRule and RewriteCond: $1-$9 capture groups from the       RewriteRule pattern, %1-%9 capture groups from the most recent       RewriteCond TestString pattern, both available in the       substitution string and in subsequent RewriteCond TestStrings"><br>
+      <dfn>Figure 1:</dfn> The back-reference flow through a rule.<br>
+      In this example, a request for <code>/test/1234</code> to host <code>admin.example.com</code> would be transformed into <code>/admin.foo?page=test&amp;id=1234&amp;host=admin.example.com</code>, provided that <code>%{DOCUMENT_ROOT}/test</code> is not an existing file.
+</p>
+      <p>See also <a href="tech.html#InternalRuleset">Technical Details</a>
+      for a diagram showing backreference flow with multiple conditions.</p>
+
+
+</div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="rewriterule">RewriteRule Basics <a title="Permanent link" href="#rewriterule" class="permalink">&para;</a></h2>
+<p>A <code class="directive"><a href="../mod/mod_rewrite.html#rewriterule">RewriteRule</a></code> consists
+of three arguments separated by spaces. The arguments are</p>
+<ol>
+<li><var>Pattern</var>: which incoming URLs should be affected by the rule;</li>
+<li><var>Substitution</var>: where should the matching requests be sent;</li>
+<li><var>[flags]</var>: options affecting the rewritten request.</li>
+</ol>
+
+<p>The <var>Pattern</var> is a <a href="#regex">regular expression</a>.
+In server or virtualhost context, it is matched against the
+%-decoded <a href="../directive-dict.html#Syntax">URL-path</a>
+of the incoming request &mdash; the part after the hostname and port,
+and not including the query string (e.g., <code>/app/index.html</code>).
+In <a class="glossarylink" href="../glossary.html#perdirectory" title="see glossary">per-directory context</a>,
+the pattern is matched against the request's path relative to the
+directory for which the rule is defined (with the directory prefix
+stripped &mdash; see <a href="htaccess.html#path-stripping">Per-directory
+Rewrites</a> for details).
+</p>
+
+<p>Once a substitution has occurred, any rules that follow are
+matched against the substituted value.</p>
+
+<p>The <var>Pattern</var> is matched only against the URL-path
+&mdash; not the hostname, port, or query string. To match against
+those, use a
+<code class="directive"><a href="../mod/mod_rewrite.html#rewritecond">RewriteCond</a></code> with the
+<code>%{HTTP_HOST}</code>, <code>%{SERVER_PORT}</code>, or
+<code>%{QUERY_STRING}</code> variables respectively.</p>
+
+<div class="note"><code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> operates entirely on the URL-path
+and HTTP headers. It cannot inspect the request body (e.g., POST
+data). If you need to make routing decisions based on request body
+content, handle that in your application logic or use a module such
+as <code class="module"><a href="../mod/mod_request.html">mod_request</a></code> paired with a custom filter.</div>
+
+<p class="figure">
+      <img src="../images/syntax_rewriterule.png" alt="Annotated syntax diagram of the RewriteRule directive       showing three components: Pattern (regex matched against the       URL-path), Substitution (the replacement URL or path), and       optional Flags in square brackets"><br>
+      <dfn>Figure 2:</dfn> Syntax of the RewriteRule directive.
+</p>
+
+
+<p>The <var>Substitution</var> can itself be one of three things:</p>
+
+<dl>
+<dt>1. A full filesystem path to a resource</dt>
+<dd>
+<pre class="prettyprint lang-config">RewriteRule "^/games" "/usr/local/games/web/puzzles.html"</pre>
+
+<p>This maps a request to an arbitrary location on your filesystem, much
+like the <code class="directive"><a href="../mod/mod_alias.html#alias">Alias</a></code> directive.</p>
+</dd>
+
+<dt>2. A web-path to a resource</dt>
+<dd>
+<pre class="prettyprint lang-config">RewriteRule "^/games$" "/puzzles.html"</pre>
+
+<p>If <code class="directive"><a href="../mod/core.html#documentroot">DocumentRoot</a></code> is set
+to <code>/usr/local/apache2/htdocs</code>, then this directive would
+map requests for <code>http://example.com/games</code> to the
+path <code>/usr/local/apache2/htdocs/puzzles.html</code>.</p>
+
+</dd>
+
+<dt>3. An absolute URL</dt>
+<dd>
+<pre class="prettyprint lang-config">RewriteRule "^/product/view$" "http://site2.example.com/seeproduct.html" [R]</pre>
+
+<p>This tells the client to make a new request for the specified URL.</p>
+</dd>
+</dl>
+
+<div class="warning">Note that <strong>1</strong> and <strong>2</strong> have exactly the same syntax. The difference between them is that in the case of <strong>1</strong>, the top level of the target path (i.e., <code>/usr/</code>) exists on the filesystem, where as in the case of <strong>2</strong>, it does not. (i.e., there's no <code>/bar/</code> as a root-level directory in the filesystem.)</div>
+
+<p>The <var>Substitution</var> can also
+contain <em>back-references</em> to parts of the incoming URL-path
+matched by the <var>Pattern</var>. Consider the following:</p>
+<pre class="prettyprint lang-config">RewriteRule "^/product/(.*)/view$" "/var/web/productdb/$1"</pre>
+
+<p>The variable <code>$1</code> will be replaced with whatever text
+was matched by the expression inside the parenthesis in
+the <var>Pattern</var>. For example, a request
+for <code>http://example.com/product/r14df/view</code> will be mapped
+to the path <code>/var/web/productdb/r14df</code>.</p>
+
+<p>If there is more than one expression in parenthesis, they are
+available in order in the
+variables <code>$1</code>, <code>$2</code>, <code>$3</code>, and so
+on.</p>
+
+
+</div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="flags">Rewrite Flags <a title="Permanent link" href="#flags" class="permalink">&para;</a></h2>
+<p>The behavior of a <code class="directive"><a href="../mod/mod_rewrite.html#rewriterule">RewriteRule</a></code> can be modified by the
+application of one or more flags to the end of the rule. For example, the
+matching behavior of a rule can be made case-insensitive by the
+application of the <code>[NC]</code> flag:
+</p>
+<pre class="prettyprint lang-config">RewriteRule "^puppy.html" "smalldog.html" [NC]</pre>
+
+
+<p>For more details on the available flags, their meanings, and
+examples, see the <a href="flags.html">Rewrite Flags</a> document.</p>
+
+</div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="rewritecond">Rewrite Conditions <a title="Permanent link" href="#rewritecond" class="permalink">&para;</a></h2>
+<p>One or more <code class="directive"><a href="../mod/mod_rewrite.html#rewritecond">RewriteCond</a></code>
+directives can be used to restrict the types of requests that will be
+subject to the
+following <code class="directive"><a href="../mod/mod_rewrite.html#rewriterule">RewriteRule</a></code>. The
+first argument is a variable describing a characteristic of the
+request, the second argument is a <a href="#regex">regular
+expression</a> that must match the variable, and a third optional
+argument is a list of flags that modify how the match is evaluated.</p>
+
+<p class="figure">
+      <img src="../images/syntax_rewritecond.png" alt="Annotated syntax diagram of the RewriteCond directive       showing two components: TestString (variable or text to test)       and CondPattern (regex or comparison to evaluate), with optional       flags in square brackets"><br>
+      <dfn>Figure 3:</dfn> Syntax of the RewriteCond directive
+</p>
+
+<p>For example, to send all requests from a particular IP range to a
+different server, you could use:</p>
+<pre class="prettyprint lang-config">RewriteCond "%{REMOTE_ADDR}" "^10\.2\."
+RewriteRule "(.*)"           "http://intranet.example.com$1"</pre>
+
+
+<p>When more than
+one <code class="directive"><a href="../mod/mod_rewrite.html#rewritecond">RewriteCond</a></code> is
+specified, they must all match for
+the <code class="directive"><a href="../mod/mod_rewrite.html#rewriterule">RewriteRule</a></code> to be
+applied. For example, to deny requests that contain the word "hack" in
+their query string, unless they also contain a cookie containing
+the word "go", you could use:</p>
+<pre class="prettyprint lang-config">RewriteCond "%{QUERY_STRING}" "hack"
+RewriteCond "%{HTTP_COOKIE}"  !go
+RewriteRule "."               "-"   [F]</pre>
+
+<p>Notice that the exclamation mark specifies a negative match, so the rule is only applied if the cookie does not contain "go".</p>
+
+<p>Matches in the regular expressions contained in
+the <code class="directive"><a href="../mod/mod_rewrite.html#rewritecond">RewriteCond</a></code>s can be
+used as part of the <var>Substitution</var> in
+the <code class="directive"><a href="../mod/mod_rewrite.html#rewriterule">RewriteRule</a></code> using the
+variables <code>%1</code>, <code>%2</code>, etc. For example, this
+will direct the request to a different directory depending on the
+hostname used to access the site:</p>
+<pre class="prettyprint lang-config">RewriteCond "%{HTTP_HOST}" "(.*)"
+RewriteRule "^/(.*)"       "/sites/%1/$1"</pre>
+
+<p>If the request was for <code>http://example.com/foo/bar</code>,
+then <code>%1</code> would contain <code>example.com</code>
+and <code>$1</code> would contain <code>foo/bar</code>.</p>
+
+
+
+</div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="rewritemap">Rewrite maps <a title="Permanent link" href="#rewritemap" class="permalink">&para;</a></h2>
+
+<p>The <code class="directive"><a href="../mod/mod_rewrite.html#rewritemap">RewriteMap</a></code> directive
+provides a way to call an external function, so to speak, to do your
+rewriting for you. This is discussed in greater detail in the <a href="rewritemap.html">RewriteMap supplementary documentation</a>.</p>
+</div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="htaccess">.htaccess files <a title="Permanent link" href="#htaccess" class="permalink">&para;</a></h2>
+
+<p>It is possible to use rewrite rules in
+<a class="glossarylink" href="../glossary.html#perdirectory" title="see glossary">per-directory</a> context
+(<a href="../howto/htaccess.html"><code>.htaccess</code> files</a> and
+<code class="directive"><a href="../mod/core.html#directory">&lt;Directory&gt;</a></code> blocks),
+but the rules behave differently there &mdash; in particular, the directory
+prefix is stripped from the URL before matching. See the
+<a href="htaccess.html#path-stripping">Per-directory Rewrites</a>
+document for full details. Note that
+<code class="directive"><a href="../mod/core.html#if">&lt;If&gt;</a></code> and
+<code class="directive"><a href="../mod/core.html#location">&lt;Location&gt;</a></code> blocks
+also trigger per-directory behavior &mdash; see
+<a href="htaccess.html#context-restrictions">Which contexts support rewrite rules?</a>.</p>
+
+</div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="security">Security Considerations <a title="Permanent link" href="#security" class="permalink">&para;</a></h2>
+
+<p><code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> is a powerful URL manipulation tool, and
+with that power comes the potential for security mistakes. This section
+highlights the most common security pitfalls to watch for when writing
+rewrite rules.</p>
+
+<h3 id="security-redirect">Open Redirects</h3>
+
+<p>If a <code class="directive"><a href="../mod/mod_rewrite.html#rewriterule">RewriteRule</a></code>
+constructs a redirect URL using unvalidated user input, an attacker
+can craft a link that redirects visitors to a malicious site while
+appearing to originate from your domain. This is known as an
+<em>open redirect</em> vulnerability.</p>
+
+<p>For example, this rule is dangerous:</p>
+
+<pre class="prettyprint lang-config"># DANGEROUS - allows open redirect
+RewriteRule "^/redirect" "%{QUERY_STRING}" [R,L]</pre>
+
+
+<p>An attacker could use
+<code>https://yoursite.com/redirect?https://evil.com</code> to redirect
+users to a malicious site. Always validate or constrain redirect
+targets. If the destination must be on your own site, ensure the
+substitution begins with <code>/</code> (a relative path) rather than
+allowing a full URL from user input.</p>
+
+
+
+<h3 id="security-ssrf">Server-Side Request Forgery (SSRF)</h3>
+
+<p>When using the <a href="flags.html#flag_p">[P] (proxy) flag</a>,
+<code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> causes the server to make an HTTP request
+to the substitution URL on behalf of the client. If any part of that
+URL is derived from user input - backreferences, query strings, or
+headers - an attacker may be able to cause your server to make requests
+to arbitrary internal services or external hosts.</p>
+
+<p>For example:</p>
+
+<pre class="prettyprint lang-config"># DANGEROUS - user controls the proxy target
+RewriteCond "%{QUERY_STRING}" "target=(.+)"
+RewriteRule "^/fetch" "http://%1" [P]</pre>
+
+
+<p>An attacker could use this to probe internal network services that
+are not otherwise accessible from the internet. Always use a fixed
+hostname in proxy targets, and limit backreferences to the path
+component only.</p>
+
+
+
+<h3 id="security-path">Path Traversal</h3>
+
+<p>Rewrite rules that map user-supplied path components directly to
+the filesystem can allow path traversal attacks if the input is not
+properly constrained. For example:</p>
+
+<pre class="prettyprint lang-config"># DANGEROUS - allows path traversal
+RewriteRule "^/files/(.+)" "/var/data/$1" [L]</pre>
+
+
+<p>A request for <code>/files/../../etc/passwd</code> could potentially
+access files outside the intended directory. Use restrictive patterns
+in your <code class="directive"><a href="../mod/mod_rewrite.html#rewriterule">RewriteRule</a></code> (for
+example, <code>[a-zA-Z0-9_-]+</code> instead of <code>.+</code>), and
+rely on Apache's built-in protections
+(<code class="directive"><a href="../mod/core.html#options">Options</a></code> and
+<code class="directive"><a href="../mod/core.html#directory">&lt;Directory&gt;</a></code>
+restrictions) as defense in depth.</p>
+
+
+
+</div></div>
+<div class="bottomlang">
+<p><span>Available Languages: </span><a href="../de/rewrite/intro.html" hreflang="de" rel="alternate" title="Deutsch">&nbsp;de&nbsp;</a> |
+<a href="../en/rewrite/intro.html" title="English">&nbsp;en&nbsp;</a> |
+<a href="../es/rewrite/intro.html" hreflang="es" rel="alternate" title="Espa&ntilde;ol">&nbsp;es&nbsp;</a> |
+<a href="../fr/rewrite/intro.html" hreflang="fr" rel="alternate" title="Fran&ccedil;ais">&nbsp;fr&nbsp;</a> |
+<a href="../ja/rewrite/intro.html" hreflang="ja" rel="alternate" title="Japanese">&nbsp;ja&nbsp;</a> |
+<a href="../ko/rewrite/intro.html" hreflang="ko" rel="alternate" title="Korean">&nbsp;ko&nbsp;</a> |
+<a href="../tr/rewrite/intro.html" hreflang="tr" rel="alternate" title="T&uuml;rk&ccedil;e">&nbsp;tr&nbsp;</a> |
+<a href="../zh-cn/rewrite/intro.html" hreflang="zh-cn" rel="alternate" title="Simplified Chinese">&nbsp;zh-cn&nbsp;</a></p>
+</div><div id="footer">
+<p class="apache">Copyright 2026 The Apache Software Foundation.<br>Licensed under the <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache License, Version 2.0</a>.</p>
+<p class="menu"><a href="../mod/">Modules</a> | <a href="../mod/quickreference.html">Directives</a> | <a href="https://cwiki.apache.org/confluence/display/httpd/FAQ">FAQ</a> | <a href="../glossary.html">Glossary</a> | <a href="../sitemap.html">Sitemap</a> | <a href="https://bz.apache.org/bugzilla/enter_bug.cgi?product=Apache%20httpd-2">Report a bug</a></p></div><script><!--//--><![CDATA[//><!--
+if (typeof(prettyPrint) !== 'undefined') {
+    prettyPrint();
+}
+var langToggle = document.querySelector('.lang-toggle');
+var topLang = document.querySelector('.toplang');
+if (langToggle && topLang) {
+    langToggle.addEventListener('click', function() { topLang.classList.toggle('open'); });
+}
+var qv = document.getElementById('quickview');
+if (qv) {
+    document.body.appendChild(qv);
+    var qvBtn = document.createElement('button');
+    qvBtn.className = 'qv-toggle';
+    qvBtn.setAttribute('aria-label', 'Toggle page navigation');
+    qvBtn.innerHTML = '&#9776;';
+    document.body.appendChild(qvBtn);
+    qvBtn.addEventListener('click', function() {
+        var isOpen = qv.classList.toggle('open');
+        if (isOpen) {
+            qv.style.top = window.scrollY + 10 + 'px';
+        }
+    });
+    window.addEventListener('scroll', function() { qv.classList.remove('open'); });
+}
+//--><!]]></script>
+</body></html>

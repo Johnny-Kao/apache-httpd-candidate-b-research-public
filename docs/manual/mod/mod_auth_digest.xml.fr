@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE modulesynopsis SYSTEM "../style/modulesynopsis.dtd">
+<?xml-stylesheet type="text/xsl" href="../style/manual.fr.xsl"?>
+<!-- English Revision: 1937887 -->
+<!-- French translation : Lucien GENTIS -->
+<!-- Reviewed by : Vincent Deffontaines -->
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<modulesynopsis metafile="mod_auth_digest.xml.meta">
+
+<name>mod_auth_digest</name>
+<description>Authentification utilisateur utilisant les condensés
+MD5</description>
+<status>Extension</status>
+<sourcefile>mod_auth_digest.c</sourcefile>
+<identifier>auth_digest_module</identifier>
+
+<summary>
+    <p>Ce module implémente l'authentification HTTP basée sur les
+    condensés MD5 (<rfc>2617</rfc>), une alternative à l’authentification basique
+    fournie par le module <module>mod_auth_basic</module>, et avec laquelle le
+    mot de passe n’est pas envoyé en clair sur le réseau.</p>
+
+    <p>Basic et Digest ne sont que deux schémas d’authentification : elles
+    établissent l’identité du client et ne font rien quant à la confidentialité
+    et à l’intégrité de la requête et de la réponse elles-mêmes. Si la connexion
+    n’est pas chiffrée, le contenu de chaque requête et réponse est exposé dans
+    les deux schémas ; un des avantages de l’authentification à base de condensés
+    est que le mot de passe ne fait pas partie de ces dernières. Digest n’est
+    donc pas un substitut pour une connexion sécurisée avec
+    <module>mod_ssl</module>, qui protège les éléments d’authentification et les
+    données de la même façon, et cet avantage a ses limites (voir la note
+    ci-après).</p>
+</summary>
+
+<seealso><directive module="mod_authn_core">AuthName</directive></seealso>
+<seealso><directive module="mod_authn_core">AuthType</directive></seealso>
+<seealso><directive module="mod_authz_core">Require</directive></seealso>
+<seealso><a href="../howto/auth.html">Mode d'emploi de
+l'authentification</a></seealso>
+
+<section id="using"><title>Utilisation de l'authentification à base de
+condensés</title>
+
+    <p>Pour utiliser l'authentification à base de condensés MD5, configurez la
+    protection de la section Location comme dans l'exemple ci-dessous :</p>
+
+    <example><title>Exemple :</title>
+      <highlight language="config">
+&lt;Location "/private/"&gt;
+    AuthType Digest
+    AuthName "private area"
+    AuthDigestDomain "/private/" "http://mirror.my.dom/private2/"
+    
+    AuthDigestProvider file
+    AuthUserFile "/web/auth/.digest_pw"
+    Require valid-user
+&lt;/Location&gt;
+      </highlight>
+    </example>
+
+    <p>La directive <directive
+    module="mod_auth_digest">AuthDigestDomain</directive> permet de fournir la
+    liste des URIs protégés par cette configuration.</p>
+
+    <p>Le fichier de mots de passe référencé par la directive <directive
+    module="mod_auth_digest">AuthUserFile</directive> peut être créé et maintenu
+    via l'utilitaire <program>htdigest</program>.</p>
+
+    <note><title>Note</title>
+    <p>Un des avantages de Digest par rapport à Basic, éviter l’envoi du mot de
+    passe en clair, est soumis à condition. Si le client se rabat
+    silencieusement sur l’authentification basique lors de la négociation, un
+    attaquant actif pourra contourner la négociation Digest et en proposer une
+    basique à la place ; le navigateur enverra alors le mot de passe en clair ;
+    un espion passif pourra monter une attaque de force brute hors ligne sur une
+    réponse capturée que le hachage MD5 rapide ne ralentira que légèrement ; et
+    si le fichier <program>htdigest</program> est volé, les hachages qu’il
+    contient pourront être rejoués pour s’authentifier directement, sans avoir à
+    récupérer le mot de passe proprement dit. Il est préférable de chiffrer la
+    totalité de la connexion avec <module>mod_ssl</module>.</p>
+    <p><module>mod_auth_digest</module> requiert qu’APR soit construit avec la
+    prise en charge de la mémoire partagée, sinon il ne pourra pas être
+    construit.</p>
+    </note>
+</section>
+
+<directivesynopsis>
+<name>AuthDigestProvider</name>
+<description>Définit le(s) fournisseurs(s) d'authentification pour la
+zone du site web concernée</description>
+<syntax>AuthDigestProvider <var>nom fournisseur</var>
+[<var>nom fournisseur</var>] ...</syntax>
+<default>AuthDigestProvider file</default>
+<contextlist><context>directory</context><context>.htaccess</context>
+</contextlist>
+<override>AuthConfig</override>
+
+<usage>
+    <p>La directive <directive>AuthDigestProvider</directive> permet de
+    définir quel fournisseur d'authentification sera utilisé pour
+    authentifier les utilisateurs pour la zone du site web concernée.
+    Assurez-vous que le module implémentant le fournisseur
+    d'authentification choisi soit bien présent dans le serveur. Le
+    fournisseur par défaut <code>file</code> est implémenté par le
+    module <module>mod_authn_file</module>.</p>
+
+    <p>Voir <module>mod_authn_dbm</module>,
+    <module>mod_authn_file</module>, <module>mod_authn_dbd</module> et
+    <module>mod_authn_socache</module>
+    pour la liste des fournisseurs disponibles.</p>
+</usage>
+</directivesynopsis>
+
+<directivesynopsis>
+<name>AuthDigestQop</name>
+<description>Détermine le niveau de protection fourni par
+l'authentification à base de condensé</description>
+<syntax>AuthDigestQop auth</syntax>
+<default>AuthDigestQop auth</default>
+<contextlist><context>directory</context><context>.htaccess</context>
+</contextlist>
+<override>AuthConfig</override>
+
+<usage>
+    <p>La directive <directive>AuthDigestQop</directive> permet de spécifier la
+    <dfn>qualité de protection</dfn> à utiliser. Seule la qualité
+    <code>auth</code> (authentification) est prise en charge et il s’agit de la
+    valeur par défaut. Cette directive n’a donc plus d’effet et n’est conservée
+    qu’à des fins de compatibilité.</p>
+
+    <note>Les versions précédentes acceptaient aussi la qualité
+    <code>none</code> (le schéma Digest de la RFC 2069 sans qualité de
+    protection). Elle a été supprimée : une requête dont la <code>qop</code> est
+    absente ou différente de <code>auth</code> est maintenant rejetée.</note>
+</usage>
+</directivesynopsis>
+
+<directivesynopsis>
+<name>AuthDigestNonceLifetime</name>
+<description>Durée de validité du nombre à valeur unique du
+serveur (nonce)</description>
+<syntax>AuthDigestNonceLifetime <var>seconds</var></syntax>
+<default>AuthDigestNonceLifetime 300</default>
+<contextlist><context>directory</context><context>.htaccess</context>
+</contextlist>
+<override>AuthConfig</override>
+
+<usage>
+    <p>La directive <directive>AuthDigestNonceLifetime</directive>
+    permet de contrôler la durée de validité du nombre à valeur unique
+    du serveur (nonce). Lorsque le client contacte le serveur en
+    utilisant un nonce dont la validité a expiré, le serveur renvoie un
+    code d'erreur 401 avec <code>stale=true</code> et un client qui respecte la
+    RFC réessaiera avec un nouveau nombre à valeur unique sans le demander à
+    l’utilisateur.</p>
+
+    <ul>
+      <li>Si la valeur de l’argument <var>seconds</var> est supérieure à 0, elle
+      spécifie la durée de validité du nombre à valeur unique ; il est
+      raisonnable de penser qu’elle ne devra jamais être définie en dessous de
+      10 secondes.</li>
+
+      <li>Si la valeur de l’argument <var>seconds</var> est égale à 0, le nombre
+      à valeur unique ne pourra être utilisé qu’une seule fois. Le serveur
+      fournit le prochain nombre à valeur unique dans l’en-tête
+      <code>Authentication-Info</code> de chaque réponse, de sorte que le client
+      puisse continuer ; un client qui réutilise un nombre à valeur unique est
+      sollicité avec <code>stale=true</code> et réessaie. Les nombres à valeur
+      unique à usage unique assurent une protection plus efficace contre le
+      rejeu de réponses capturées, mais le client ne peut pas organiser les
+      requêtes en pipeline et s’il le fait, il recevra un code 401 pour toutes
+      les requêtes sauf la première et il devra les renvoyer. Ce coût est le
+      prix de la protection principalement pour les requêtes qui modifient
+      l’état du serveur ou renvoient du contenu qui varie au cours du temps ;
+      rejouer une requête pour du contenu qui ne varie pas que l’espion a déjà
+      capturé en entier ne rapporte rien.</li>
+
+      <li>Si la valeur de l’argument <var>seconds</var> est inférieure à 0, le nombre
+      à valeur unique n’expire jamais.</li>
+    </ul>
+</usage>
+</directivesynopsis>
+
+<directivesynopsis>
+<name>AuthDigestNcCheck</name>
+<description>Active ou désactive la vérification du compteur d'envois du
+nombre à valeur unique (nonce) par le client</description>
+<syntax>AuthDigestNcCheck On|Off</syntax>
+<default>AuthDigestNcCheck Off</default>
+<contextlist><context>server config</context><context>virtual host</context>
+<context>directory</context><context>.htaccess</context></contextlist>
+<override>AuthConfig</override>
+
+<usage>
+    <p>La directive AuthDigestNcCheck permet d'activer ou de désactiver
+    la vérification du compteur d'envois du nombre à valeur unique (nonce)
+    par le client. Le compteur d'envois est un compteur séquentiel que le client
+    incrémente à chaque requête en utilisant le même nombre à valeur unique.
+    Cette vérification permet de détecter les attaques par rejeu.</p>
+
+    <p>Cette fonctionnalité nécessite la prise en charge de la mémoire partagée
+    sur la plateforme. Si cette directive est définie à <code>On</code> alors
+    que la mémoire partagée n’est pas disponible, le serveur renverra une erreur
+    au démarrage.</p>
+
+    <p>Bien qu’il soit recommandé de le faire du point de vue de la sécurité,
+    activer cette directive a des implications en matière de performance :
+    toutes les requêtes comportant un en-tête
+    <code>Authorization</code> doivent être sérialisées au sein d’une section
+    critique pour comparer de manière sure les valeurs du compteur d’envois du
+    nombre à valeur unique. Sur les serveurs à fort trafic, cela peut ne pas être
+    négligeable.</p>
+</usage>
+</directivesynopsis>
+
+<directivesynopsis>
+<name>AuthDigestAlgorithm</name>
+<description>Sélectionne l'algorithme utilisé pour calculer les condensés du
+défit et de sa réponse dans l’authentification à base de condensés</description>
+<syntax>AuthDigestAlgorithm MD5</syntax>
+<default>AuthDigestAlgorithm MD5</default>
+<contextlist><context>directory</context><context>.htaccess</context>
+</contextlist>
+<override>AuthConfig</override>
+
+<usage>
+    <p>La directive <directive>AuthDigestAlgorithm</directive> permet de
+    sélectionner l'algorithme utilisé pour calculer les condensés du
+    défit et de sa réponse. Seul l’algorithme <code>MD5</code> est pris en
+    charge.</p>    
+</usage>
+</directivesynopsis>
+
+<directivesynopsis>
+<name>AuthDigestDomain</name>
+<description>Les URIs qui se trouvent dans le même espace de protection
+concernant l'authentification à base de condensés</description>
+<syntax>AuthDigestDomain <var>URI</var> [<var>URI</var>] ...</syntax>
+<contextlist><context>directory</context><context>.htaccess</context>
+</contextlist>
+<override>AuthConfig</override>
+
+<usage>
+    <p>La directive <directive>AuthDigestDomain</directive> vous permet
+    de spécifier un ou plusieurs URIs se trouvant dans le même
+    espace de protection (c'est à dire utilisant le même utilisateur/mot
+    de passe et se trouvant dans le même domaine). Les URIs spécifiés
+    sont des préfixes ; le client doit savoir que tous les URIs situés
+    sous ces préfixes seront protégés par le même utilisateur/mot de
+    passe. Les URIs peuvent être soit des URIs absolus (c'est à dire
+    avec protocole, nom serveur, port, etc...), soit des URIs
+    relatifs.</p>
+
+    <p>Cette directive doit toujours être présente et contenir au moins
+    le(s) URI(s) racine(s) pour cet espace. Dans le cas contraire, le
+    client va envoyer un en-tête d'autorisation avec <em>chaque
+    requête</em> à destination de ce serveur. Outre une augmentation de
+    la taille de la requête, les performances vont s'en trouver
+    affectées si la directive <directive
+    module="mod_auth_digest">AuthDigestNcCheck</directive> est définie à
+    On.</p>
+
+    <p>Les URIs spécifiés peuvent aussi référencer différents serveurs,
+    auquel cas les clients (qui sont à même de le comprendre) vont
+    partager l'utilisateur/mot de passe entre plusieurs serveurs sans le
+    demander à l'utilisateur à chaque fois.</p>
+</usage>
+</directivesynopsis>
+
+<directivesynopsis>
+<name>AuthDigestShmemSize</name>
+<description>La quantité de mémoire partagée à allouer afin de conserver
+les informations à propos des clients</description>
+<syntax>AuthDigestShmemSize <var>taille</var></syntax>
+<default>AuthDigestShmemSize 8192</default>
+<contextlist><context>server config</context></contextlist>
+
+<usage>
+    <p>La directive <directive>AuthDigestShmemSize</directive> permet de
+    définir la quantité de mémoire partagée à allouer au démarrage du
+    serveur afin de conserver les informations à propos des clients.
+    Notez que le segment de mémoire partagée ne peut pas être défini à
+    une taille inférieure à l'espace nécessaire pour conserver les
+    informations à propos d'<em>un</em> client. Cette valeur dépend de
+    votre système. Si vous voulez en déterminer la valeur exacte, vous
+    pouvez simplement définir <directive>AuthDigestShmemSize</directive>
+    à <code>0</code> et consulter le message d'erreur que renverra le
+    serveur lorsqu'on essaiera de le démarrer.</p>
+
+    <p>La valeur par défaut permet d’enregistrer environ 140 clients. Un client
+    qui est supprimé pour faire de la place à un autre ne se voit pas interdire
+    l’accès : un nouveau nombre à valeur unique lui est envoyé avec
+    <code>stale=true</code>, ce qui ne lui coûte qu’une requête supplémentaire.
+    Notez qu’une requête qui n’effectue pas d’authentification mobilise tout de
+    même une entrée, car le défit qui lui est renvoyé comporte l’identifiant
+    avec lequel le client est suivi.</p>
+
+    <p>L'argument <var>size</var> s'exprime par défaut en octets, mais
+    vous pouvez suffixer le nombre par un <code>K</code> ou un
+    <code>M</code> pour spécifier respectivement des KiloOctets ou des
+    MégaOctets. Par exemple, les directives qui suivent sont toutes
+    équivalentes :</p>
+
+    <highlight language="config">
+AuthDigestShmemSize 1048576
+AuthDigestShmemSize 1024K
+AuthDigestShmemSize 1M
+    </highlight>
+</usage>
+</directivesynopsis>
+
+</modulesynopsis>

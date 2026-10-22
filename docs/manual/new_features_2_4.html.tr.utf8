@@ -1,0 +1,440 @@
+<!DOCTYPE html SYSTEM "about:legacy-compat">
+<html lang="tr"><head><META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<!--
+        XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+              This file is generated from xml source: DO NOT EDIT
+        XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      -->
+<title>Apache HTTP Sunucusu 2.4'te Yeni olan &Ouml;zellikler - Apache HTTP Sunucusu S&uuml;r&uuml;m 2.5</title>
+<link href="./style/css/manual.css" rel="stylesheet" media="all" type="text/css" title="Main stylesheet">
+<link href="./style/css/manual-loose-100pc.css" rel="alternate stylesheet" media="all" type="text/css" title="No Sidebar - Default font size">
+<link href="./style/css/manual-print.css" rel="stylesheet" media="print" type="text/css"><link rel="stylesheet" type="text/css" href="./style/css/prettify.css">
+<script src="./style/scripts/prettify.min.js">
+</script>
+
+<link href="./images/favicon.png" rel="shortcut icon"></head>
+<body id="manual-page"><div id="page-header">
+<p class="menu"><a href="./mod/">Mod&uuml;ller</a> | <a href="./mod/quickreference.html">Y&ouml;nergeler</a> | <a href="https://cwiki.apache.org/confluence/display/httpd/FAQ">SSS</a> | <a href="./glossary.html">Terimler</a> | <a href="./sitemap.html">Site Haritası</a> | <a href="https://bz.apache.org/bugzilla/enter_bug.cgi?product=Apache%20httpd-2">Report a bug</a></p>
+<p class="apache">Apache HTTP Sunucusu S&uuml;r&uuml;m 2.5</p>
+<img alt="" src="./images/feather.png"></div>
+<div class="up"><a href="./"><img title="<-" alt="<-" src="./images/left.gif"></a></div>
+<div id="path">
+<a href="https://www.apache.org/">Apache</a> &gt; <a href="https://httpd.apache.org/">HTTP Sunucusu</a> &gt; <a href="https://httpd.apache.org/docs/">Belgeleme</a> &gt; <a href="./">S&uuml;r&uuml;m 2.5</a></div><div id="page-content"><div id="preamble"><h1>Apache HTTP Sunucusu 2.4'te Yeni olan &Ouml;zellikler</h1>
+<button aria-label="Toggle language list" class="lang-toggle"><svg xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke="currentColor" fill="none" viewBox="0 0 24 24" height="16" width="16"><circle r="10" cy="12" cx="12"/><line y2="12" x2="22" y1="12" x1="2"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></button>
+<div class="toplang">
+<p><span>Mevcut Diller: </span><a href="./en/new_features_2_4.html" hreflang="en" rel="alternate" title="English">&nbsp;en&nbsp;</a> |
+<a href="./es/new_features_2_4.html" hreflang="es" rel="alternate" title="Espa&ntilde;ol">&nbsp;es&nbsp;</a> |
+<a href="./fr/new_features_2_4.html" hreflang="fr" rel="alternate" title="Fran&ccedil;ais">&nbsp;fr&nbsp;</a> |
+<a href="./pt-br/new_features_2_4.html" hreflang="pt-br" rel="alternate" title="Portugu&ecirc;s (Brasil)">&nbsp;pt-br&nbsp;</a> |
+<a href="./tr/new_features_2_4.html" title="T&uuml;rk&ccedil;e">&nbsp;tr&nbsp;</a></p>
+</div>
+<div class="outofdate">Bu &ccedil;eviri g&uuml;ncel olmayabilir. Son değişiklikler i&ccedil;in İngilizce s&uuml;r&uuml;m ge&ccedil;erlidir.</div>
+
+  <p>Bu belgede Apache HTTP Sunucusunun 2.2 ve 2.4 s&uuml;r&uuml;mleri arasındaki
+    başlıca farklara değinilmiştir. 2.0 s&uuml;r&uuml;m&uuml;ne g&ouml;re yeni &ouml;zellikler i&ccedil;in <a href="new_features_2_2.html">Apache 2.2'de Yeni olan &Ouml;zellikler</a>
+    belgesine bakınız.</p>
+</div>
+<div id="quickview"><ul id="toc"><li><img alt="" src="./images/down.gif"> <a href="#core">&Ccedil;ekirdekteki Gelişmeler</a></li>
+<li><img alt="" src="./images/down.gif"> <a href="#newmods">Yeni Mod&uuml;ller</a></li>
+<li><img alt="" src="./images/down.gif"> <a href="#module">Mod&uuml;llerdeki Gelişmeler</a></li>
+<li><img alt="" src="./images/down.gif"> <a href="#programs">Programlardaki Gelişmeler</a></li>
+<li><img alt="" src="./images/down.gif"> <a href="#documentation">Belgelendirme</a></li>
+<li><img alt="" src="./images/down.gif"> <a href="#developer">Mod&uuml;l Geliştirici Değişiklikleri</a></li>
+</ul></div>
+<div class="top"><a href="#page-header"><img alt="top" src="./images/up.gif"></a></div>
+<div class="section">
+<h2 id="core">&Ccedil;ekirdekteki Gelişmeler <a title="Permanent link" href="#core" class="permalink">&para;</a></h2>
+    
+    <dl>
+      <dt>&Ccedil;alışma anında y&uuml;klenebilen MPM'ler</dt>
+      <dd>&Ccedil;ok sayıda MPM artık y&uuml;klenebilir mod&uuml;l olarak derlenebilmektedir.
+        Kullanılacak MPM'in se&ccedil;imi &ccedil;alışma anında yapılabilmektedir.</dd>
+
+      <dt>Event MPM</dt>
+      <dd>Event MPM artık deneysel değil, ancak tam olarak desteklenmiyor.</dd>
+
+      <dt>Eşzamansıza destek</dt>
+      <dd>MPM'leri ve platformları desteklemek i&ccedil;in eşzamansız okuma/yazmaya
+        destek iyileştirildi.</dd>
+
+      <dt>Modul bazında ve dizin bazına LogLevel yapılandırması</dt>
+      <dd><code class="directive"><a href="./mod/core.html#loglevel">LogLevel</a></code> artık her mod&uuml;l ve her
+          dizin i&ccedil;in yapılandırılabilmektedir. <code>debug</code> log
+          seviyesinin &uuml;st&uuml;ne <code>trace1</code>'den <code>trace8</code>'e
+          kadar yeni log seviyeleri eklendi.</dd>
+
+      <dt>İstek bazında yapılandırma b&ouml;l&uuml;mleri</dt>
+      <dd><code class="directive"><a href="./mod/core.html#if">&lt;If&gt;</a></code>,
+          <code class="directive"><a href="./mod/core.html#elseif">&lt;ElseIf&gt;</a></code>,
+          ve <code class="directive"><a href="./mod/core.html#else">&lt;Else&gt;</a></code> b&ouml;l&uuml;mleri
+          artık HTTP isteklerine dayalı olarak yapılandırılabilmektedir.</dd>
+
+      <dt>Genel ama&ccedil;lı ifade &ccedil;&ouml;z&uuml;mleyici</dt>
+      <dd>Yeni ifade &ccedil;&ouml;z&uuml;mleyici
+          <code class="directive"><a href="./mod/mod_setenvif.html#setenvifexpr">SetEnvIfExpr</a></code>,
+          <code class="directive"><a href="./mod/mod_rewrite.html#rewritecond">RewriteCond</a></code>,
+          <code class="directive"><a href="./mod/mod_headers.html#header">Header</a></code>,
+          <code class="directive"><a href="./mod/core.html#if">&lt;If&gt;</a></code> ve
+          benzeri y&ouml;nergelerde ortak bir s&ouml;zdizimi kullanarak <a href="expr.html">karmaşık durumlar</a> belirtmeyi m&uuml;mk&uuml;n kılmaktadır.
+      </dd>
+
+      <dt>Milisaniye cinsinden KeepAliveTimeout</dt>
+      <dd><code class="directive"><a href="./mod/core.html#keepalivetimeout">KeepAliveTimeout</a></code> milisaniye
+        cinsinden belirtmek artık m&uuml;mk&uuml;nd&uuml;r.</dd>
+
+      <dt>NameVirtualHost y&ouml;nergesi</dt>
+      <dd>Artık gerekmemekte ve kullanımı &ouml;nerilmemektedir.</dd>
+
+      <dt>Yapılandırma ge&ccedil;ersizleştirme</dt>
+      <dd>Yeni <code class="directive"><a href="./mod/core.html#allowoverridelist">AllowOverrideList</a></code>
+          y&ouml;nergesi <code>.htaccess</code> dosyalarında kullanılabilen
+          y&ouml;nergelerde daha ince ayarlara izin vermektedir.</dd>
+
+      <dt>Yapılandırma dosyası değişkenleri</dt>
+      <dd>Yapılandırmada değişkenler <code class="directive"><a href="./mod/core.html#define">Define</a></code> y&ouml;nergesi ile tanımlanabilmekte, b&ouml;ylece aynı
+          değer yapılandırmada bir &ccedil;ok yerde kullanılıyorsa daha temiz bir
+          g&ouml;r&uuml;n&uuml;m elde edilebilmektedir.</dd>
+
+      <dt>Azaltılmış bellek kullanımı</dt>
+      <dd>Bir &ccedil;ok yeni &ouml;zelliğe karşın, 2.4.x'te 2.2.x'e nazaran bellek
+        kullanımı azaltılmıştır.</dd>
+    </dl>
+  </div><div class="top"><a href="#page-header"><img alt="top" src="./images/up.gif"></a></div>
+<div class="section">
+<h2 id="newmods">Yeni Mod&uuml;ller <a title="Permanent link" href="#newmods" class="permalink">&para;</a></h2>
+    
+    <dl>
+      <dt><code class="module"><a href="./mod/mod_proxy_fcgi.html">mod_proxy_fcgi</a></code></dt>
+      <dd><code class="module"><a href="./mod/mod_proxy.html">mod_proxy</a></code> i&ccedil;in FastCGI Protokol&uuml; sağlayıcısı</dd>
+
+      <dt><code class="module"><a href="./mod/mod_proxy_scgi.html">mod_proxy_scgi</a></code></dt>
+      <dd><code class="module"><a href="./mod/mod_proxy.html">mod_proxy</a></code> i&ccedil;in SCGI Protokol&uuml; sağlayıcısı</dd>
+
+      <dt><code class="module"><a href="./mod/mod_proxy_express.html">mod_proxy_express</a></code></dt>
+      <dd><code class="module"><a href="./mod/mod_proxy.html">mod_proxy</a></code> i&ccedil;in devingen olarak yapılandırılmış tam
+        tersinir vekiller sağlar.</dd>
+
+      <dt><code class="module"><a href="./mod/mod_remoteip.html">mod_remoteip</a></code></dt>
+      <dd>İstek başlıklarında bir y&uuml;k dengeleyici veya bir vekil tarafından
+        sunulan IP adres listeli bir istek i&ccedil;in g&ouml;r&uuml;nen istemci IP adresi ve
+        konak adını değiştirir.</dd>
+
+      <dt><code class="module"><a href="./mod/mod_heartmonitor.html">mod_heartmonitor</a></code>,
+          <code class="module"><a href="./mod/mod_lbmethod_heartbeat.html">mod_lbmethod_heartbeat</a></code></dt>
+      <dd><code class="module"><a href="./mod/mod_proxy_balancer.html">mod_proxy_balancer</a></code> mod&uuml;l&uuml;n&uuml;n arka sunuculardaki
+        etkin bağlantı sayısı &uuml;zerindeki y&uuml;k dengeleme kararlarına dayalı işlem
+        yapmasını sağlar.</dd>
+
+      <dt><code class="module"><a href="./mod/mod_proxy_html.html">mod_proxy_html</a></code></dt>
+      <dd>Başta bir &uuml;&ccedil;&uuml;nc&uuml; parti mod&uuml;ld&uuml;. Arka plandaki sağlayıcının vekil
+        istemcileri i&ccedil;in ge&ccedil;ersiz URL'ler &uuml;rettiği tersinir vekil durumlarında
+        HTML bağlarının d&uuml;zeltilmesini sağlar.</dd>
+
+      <dt><code class="module"><a href="./mod/mod_sed.html">mod_sed</a></code></dt>
+      <dd><code class="module"><a href="./mod/mod_substitute.html">mod_substitute</a></code> mod&uuml;l&uuml;n&uuml;n geliştirilmiş hali olup
+        yanıt g&ouml;vdesinin sed'in t&uuml;m g&uuml;c&uuml; ile yeniden d&uuml;zenlenebilmesini
+        sağlar.</dd>
+
+      <dt><code class="module"><a href="./mod/mod_auth_form.html">mod_auth_form</a></code></dt>
+      <dd>Formlara dayalı kimlik kanıtlamaya izin verir.</dd>
+
+      <dt><code class="module"><a href="./mod/mod_session.html">mod_session</a></code></dt>
+      <dd>&Ccedil;erezleri ve veritabanı deposunu kullanarak istemciler i&ccedil;in oturum
+        durumunun saklanmasını sağlar.</dd>
+
+      <dt><code class="module"><a href="./mod/mod_allowmethods.html">mod_allowmethods</a></code></dt>
+      <dd>Kimlik Doğrulama ve Yetkilendirme ile etkileşmeyen belli HTTP
+        y&ouml;ntemlerine sınır koymak i&ccedil;in yeni bir mod&uuml;l.</dd>
+
+      <dt><code class="module"><a href="./mod/mod_lua.html">mod_lua</a></code></dt>
+      <dd>K&uuml;&ccedil;&uuml;k iş mantıksal işlevleri ve yapılandırması i&ccedil;in httpd i&ccedil;ine <a href="http://www.lua.org/">Lua</a> dilini g&ouml;mer.</dd>
+
+      <dt><code class="module"><a href="./mod/mod_log_debug.html">mod_log_debug</a></code></dt>
+      <dd>İstek işlemlerinin farklı aşamalarına &ouml;zelleştirilebilir hata
+        ayıklama g&uuml;nl&uuml;ğ&uuml; eklenmesini sağlar.</dd>
+
+      <dt><code class="module"><a href="./mod/mod_buffer.html">mod_buffer</a></code></dt>
+      <dd>Girdi ve &ccedil;ıktı s&uuml;zge&ccedil; yığıtlarına tampon bellek sağlar.</dd>
+
+      <dt><code class="module"><a href="./mod/mod_data.html">mod_data</a></code></dt>
+      <dd>Yanıt g&ouml;vdesini bir RFC2397 veri URL'sine d&ouml;n&uuml;şt&uuml;r&uuml;r.</dd>
+
+      <dt><code class="module"><a href="./mod/mod_ratelimit.html">mod_ratelimit</a></code></dt>
+      <dd>İstemciler i&ccedil;in band genişliği oranında sınırlama sağlar.</dd>
+
+      <dt><code class="module"><a href="./mod/mod_request.html">mod_request</a></code></dt>
+      <dd>Kullanılabilir HTTP istek g&ouml;vdelerini yapmak ve elde etmek i&ccedil;in
+        S&uuml;zge&ccedil;leri sağlar.</dd>
+
+      <dt><code class="module"><a href="./mod/mod_reflector.html">mod_reflector</a></code></dt>
+      <dd>&Ccedil;ıktı s&uuml;zgeci yığıtı &uuml;zerinden bir yanıt olarak bir istek g&ouml;vdesinin
+        yansısını sağlar.</dd>
+
+      <dt><code class="module"><a href="./mod/mod_slotmem_shm.html">mod_slotmem_shm</a></code></dt>
+      <dd>Yuva temelli bir paylaşımlı bellek sağlayıcı sağlar (scoreboard
+        olarak da bilinir).</dd>
+
+      <dt><code class="module"><a href="./mod/mod_xml2enc.html">mod_xml2enc</a></code></dt>
+      <dd>Başta bir &uuml;&ccedil;&uuml;nc&uuml; parti mod&uuml;ld&uuml;. libxml2 temelli s&uuml;zge&ccedil; mod&uuml;llerinde
+        i18n'i destekler.</dd>
+    </dl>
+  </div><div class="top"><a href="#page-header"><img alt="top" src="./images/up.gif"></a></div>
+<div class="section">
+<h2 id="module">Mod&uuml;llerdeki Gelişmeler <a title="Permanent link" href="#module" class="permalink">&para;</a></h2>
+    
+    <dl>
+      <dt><code class="module"><a href="./mod/mod_ssl.html">mod_ssl</a></code></dt>
+
+      <dd><code class="module"><a href="./mod/mod_ssl.html">mod_ssl</a></code> bir istemci sertifikasının doğrulama
+        durumunu sınamak i&ccedil;in bir OCSP sunucusunu kullanmak &uuml;zere
+        yapılandırılabilir. &Ouml;ntanımlı yanıtlayıcı, istemci sertifikasının
+        kendisinde tasarlanmış yanıtlayıcının tercih edilip edilmeyeceği
+        kararına bağlı olarak yapılandırılabilir.</dd>
+
+      <dd><code class="module"><a href="./mod/mod_ssl.html">mod_ssl</a></code>, ayrıca, sunucunun istemciyle anlaşma
+        sırasında kendi sertifikasının OCSP doğrulamasını umursamazca sağlayıp
+        aktardığı durumda OCSP zımbalamasını da destekler.</dd>
+
+      <dd><code class="module"><a href="./mod/mod_ssl.html">mod_ssl</a></code>, sunucular arasında SSL Oturumu verisini
+        memcached &uuml;zerinden paylaşmak &uuml;zere yapılandırılabilir.</dd>
+
+      <dd>RSA ve DSA'ya ek olarak EC anahtarları da artık desteklenmektedir.
+      </dd>
+
+      <dt><code class="module"><a href="./mod/mod_proxy.html">mod_proxy</a></code></dt>
+
+      <dd><code class="directive"><a href="./mod/mod_proxy.html#proxypass">ProxyPass</a></code> y&ouml;nergesi bir
+        <code class="directive"><a href="./mod/core.html#location">Location</a></code> veya
+        <code class="directive"><a href="./mod/core.html#locationmatch">LocationMatch</a></code> bloku i&ccedil;inde en
+        verimli şekilde yapılandırılabilir ve b&uuml;y&uuml;k sayıların varlığı durumunda
+        geleneksel iki değiştirgeli s&ouml;zdiziminin de &uuml;zerinde belirgin bir
+        başarım artışı sağlar.</dd>
+
+      <dd>Vekil istekleri i&ccedil;in kullanılan kaynak adresi artık
+        yapılandırılabilmektedir.</dd>
+
+      <dt><code class="module"><a href="./mod/mod_proxy_balancer.html">mod_proxy_balancer</a></code></dt>
+
+      <dd>Dengeleme y&ouml;neticisi &uuml;zerinden BalancerMembers i&ccedil;in daha fazla
+        &ccedil;alışma anı yapılandırması</dd>
+
+      <dd>&Ccedil;alışma anında dengeleme y&ouml;neticisi &uuml;zerinden başka BalancerMembers
+        eklenebilir.</dd>
+
+      <dd>&Ccedil;alışma anı yapılandırmasına y&ouml;nelik dengeleyici değiştirgeleri</dd>
+
+      <dd>BalancerMembers i&ccedil;in 'Drain' değeri belirtilebilir; b&ouml;ylece sadece
+        mevcut yapışık oturumlara yanıt verirler ve bunların g&uuml;zellikle hattan
+        alınması m&uuml;mk&uuml;n olur.</dd>
+
+      <dd>Balancer ayarları sunucu yeniden başlatılssa bile kalıcı olabilir.
+        </dd>
+
+      <dt><code class="module"><a href="./mod/mod_cache.html">mod_cache</a></code></dt>
+
+      <dd><code class="module"><a href="./mod/mod_cache.html">mod_cache</a></code> CACHE s&uuml;zgeci, arabellekleme &uuml;zerinde daha
+        hassas denetim sağlamak i&ccedil;in istenirse s&uuml;zge&ccedil; zincirinin belli bir
+        noktasına yerleştirilebilmektedir.</dd>
+
+      <dd><code class="module"><a href="./mod/mod_cache.html">mod_cache</a></code> artık HEAD isteklerini
+        arabellekleyebiliyor.</dd>
+
+      <dd>M&uuml;mk&uuml;n olduğunda, <code class="module"><a href="./mod/mod_cache.html">mod_cache</a></code> y&ouml;nergeleri sunucu
+        bazında değil, dizin bazında belirtilebiliyor.</dd>
+
+      <dd>Arabellekli URL'lerin temel URL'si &ouml;zelleştirilebiliyor; b&ouml;ylece
+         arabelleğin bir b&ouml;l&uuml;m&uuml; aynı u&ccedil; URL &ouml;nekini paylaşabiliyor.</dd>
+
+      <dd><code class="module"><a href="./mod/mod_cache.html">mod_cache</a></code>, ardalanda bir sağlayıcının olmadığı
+        durumda (5xx hatası), arabelleklenmiş bayat i&ccedil;eriği sunabiliyor.</dd>
+
+      <dd><code class="module"><a href="./mod/mod_cache.html">mod_cache</a></code> artık bir X-Cache başlığına bir
+        HIT/MISS/REVALIDATE yerleştirebiliyor.</dd>
+
+      <dt><code class="module"><a href="./mod/mod_include.html">mod_include</a></code></dt>
+      <dd>Bir hata durumunda &ouml;ntanımlı hata dizgisi yerine bir hata sayfası
+        sunmayı sağlayan 'onerror' &ouml;zniteliği i&ccedil;in 'include' elemanı i&ccedil;inde
+        destek.</dd>
+
+      <dt><code class="module"><a href="./mod/mod_cgi.html">mod_cgi</a></code>, <code class="module"><a href="./mod/mod_include.html">mod_include</a></code>,
+          <code class="module"><a href="./mod/mod_isapi.html">mod_isapi</a></code>, ...</dt>
+      <dd>Başlıkların ortam değişkenlerine d&ouml;n&uuml;ş&uuml;m&uuml;, başlık zerki yoluyla bazı
+        olası karşı-site-betik saldırılarının hafifletilmesinden &ouml;nce daha
+        hızlı ve doğru yapılmaktadır. Ge&ccedil;ersiz karakterler (alt&ccedil;izgiler dahil)
+        i&ccedil;eren başlıklar artık sessizce bırakılmaktadır.<a href="env.html">Apache'deki Ortam değişkenleri</a>, b&ouml;yle başlıkları
+        gerektiren bozulmuş meşru istemcilerin &ccedil;evresinden dolanabilen
+        g&ouml;stericilere sahiptir. (Bu durum, bu değişkenleri kullanan t&uuml;m
+        mod&uuml;lleri etkiler.)</dd>
+
+      <dt><code class="module"><a href="./mod/mod_authz_core.html">mod_authz_core</a></code> Yetkilendirme Kuralları
+        Taşıyıcıları</dt>
+
+      <dd>Gelişkin yetkilendirme kuralları artık <code class="directive"><a href="./mod/mod_authz_core.html#require">Require</a></code> y&ouml;nergesi ve <code class="directive"><a href="./mod/mod_authz_core.html#requireall">&lt;RequireAll&gt;</a></code> gibi
+        ilgili taşıyıcı y&ouml;nergeler kullanılarak belirtilebilmektedir.</dd>
+
+      <dt><code class="module"><a href="./mod/mod_rewrite.html">mod_rewrite</a></code></dt>
+      <dd><code class="module"><a href="./mod/mod_rewrite.html">mod_rewrite</a></code> bildik yeniden yazma senaryolarını
+        basitleştirmek i&ccedil;in <code class="directive"><a href="./mod/mod_rewrite.html#rewriterule">RewriteRule</a></code> y&ouml;nergesine
+        <code>[QSD]</code> (Query String Discard=sorgu dizgisini iptal) ve
+        <code>[END]</code> se&ccedil;eneklerini sağlamaktadır.</dd>
+      <dd><code class="directive"><a href="./mod/mod_rewrite.html#rewritecond">RewriteCond</a></code> i&ccedil;inde
+        karmaşık mantıksal ifadeler kullanımını m&uuml;mk&uuml;n kılmaktadır.</dd>
+      <dd>llows to use SQL queries as SQL sorgularının <code class="directive"><a href="./mod/mod_rewrite.html#rewritemap">RewriteMap</a></code> işlevleri olarak
+          kullanılması sağlanmıştır.</dd>
+
+      <dt><code class="module"><a href="./mod/mod_ldap.html">mod_ldap</a></code>, <code class="module"><a href="./mod/mod_authnz_ldap.html">mod_authnz_ldap</a></code></dt>
+      <dd><code class="module"><a href="./mod/mod_authnz_ldap.html">mod_authnz_ldap</a></code> k&uuml;melenmiş gruplara destek sağlar.
+      </dd>
+      <dd><code class="module"><a href="./mod/mod_ldap.html">mod_ldap</a></code> zaman aşımlarını işleme sokabilmek i&ccedil;in
+          <code class="directive"><a href="./mod/mod_ldap.html#ldapconnectionpoolttl">LDAPConnectionPoolTTL</a></code>,
+          <code class="directive"><a href="./mod/mod_ldap.html#ldaptimeout">LDAPTimeout</a></code> ve birtakım
+          başka geliştirmeler sahiptir. &Ouml;zellikle, bir LDAP sunucusunun boşta
+          kalmış bağlantılarını bıraktıran bir durumsal g&uuml;venlik duvarı
+          varlığında gerekli ayarlamaları yapmak i&ccedil;in kullanışlıdır.</dd>
+      <dd><code class="module"><a href="./mod/mod_ldap.html">mod_ldap</a></code>, artık, LDAP ara&ccedil; kiti kullanarak sağlanan
+        hata ayıklama bilgisini g&uuml;nl&uuml;klemek i&ccedil;in <code class="directive"><a href="./mod/mod_ldap.html#ldaplibrarydebug">LDAPLibraryDebug</a></code> y&ouml;nergesini
+        i&ccedil;ermektedir.</dd>
+
+      <dt><code class="module"><a href="./mod/mod_info.html">mod_info</a></code></dt>
+      <dd><code class="module"><a href="./mod/mod_info.html">mod_info</a></code> &ouml;nceden &ccedil;&ouml;z&uuml;mlenmiş yapılandırmayı artık
+        sunucunun başlatılması sırasında standart &ccedil;ıktıya
+        d&ouml;k&uuml;mleyebilmektedir.</dd>
+    </dl>
+  </div><div class="top"><a href="#page-header"><img alt="top" src="./images/up.gif"></a></div>
+<div class="section">
+<h2 id="programs">Programlardaki Gelişmeler <a title="Permanent link" href="#programs" class="permalink">&para;</a></h2>
+    
+    <dl>
+        <dt>fcgistarter</dt>
+        <dd>Yeni FastCGI artalan sunucusu başlatma aracı</dd>
+
+        <dt>htcacheclean</dt>
+        <dd>Arabellekli URL'ler, istenirse metadata'yı da dahil ederek
+          listelenebilmektedir.</dd>
+        <dd>Bazı URL'ler arabellekten tek tek silinebilmektedir.</dd>
+        <dd>Dosya boyutları belirtilen blok boyutuna yukarı doğru
+          yuvarlanabilmekte, b&ouml;ylece dosya boyutu sınırları diskteki ger&ccedil;ek
+          boyutlarla daha iyi eşlenebilmektedir.</dd>
+        <dd>Arabellek boyutu artık, diskteki dosyaların boyutuna g&ouml;re bir
+          sınıra ek olarak veya bunun yerine dosya d&uuml;ğ&uuml;m&uuml; sayısı ile
+          sınırlanabilmektedir.</dd>
+
+        <dt>rotatelogs</dt>
+        <dd>Artık ge&ccedil;erli g&uuml;nl&uuml;k dosyasına bir bağ oluşturulabiliyor.</dd>
+        <dd>Artık &ouml;zel bir d&ouml;nd&uuml;rme sonrası betiği &ccedil;alıştırılabiliyor.</dd>
+    </dl>
+  </div><div class="top"><a href="#page-header"><img alt="top" src="./images/up.gif"></a></div>
+<div class="section">
+<h2 id="documentation">Belgelendirme <a title="Permanent link" href="#documentation" class="permalink">&para;</a></h2>
+    
+    <dl>
+        <dt>mod_rewrite</dt>
+        <dd><code class="module"><a href="./mod/mod_rewrite.html">mod_rewrite</a></code> belgeleri, yeniden d&uuml;zenlenerek,
+          genel kullanıma ve &ouml;rneklere odaklı olarak ve diğer &ccedil;&ouml;z&uuml;mlerin hangi
+          durumlarda daha uygun olduğu da g&ouml;sterilerek hemen hemen tamamen
+          yeniden yazıldı. <a href="rewrite/">Yeniden Yazma Kılavuzu</a> artık
+          bir sayfa olmaktan &ccedil;ıkıp, &ccedil;ok daha ayrıntılı ve daha iyi d&uuml;zenlenmiş
+          bir b&ouml;l&uuml;m haline geldi.</dd>
+
+        <dt>mod_ssl</dt>
+        <dd><code class="module"><a href="./mod/mod_ssl.html">mod_ssl</a></code> belgeleri, evvelki teknik ayrıntılara ek
+          olarak başlarken seviyesinde daha fazla &ouml;rnekle b&uuml;y&uuml;k oranda
+          genişletildi.</dd>
+
+        <dt>&Ouml;nbellek Kullanım Kılavuzu</dt>
+        <dd><a href="caching.html">&Ouml;nbellek Kullanım Kılavuzu</a>
+          <code class="module"><a href="./mod/mod_cache.html">mod_cache</a></code> tarafından sağlanan RFC2616 HTTP/1.1
+          &ouml;nbellekleme &ouml;zellikleri arasıda daha iyi ayrım yapılabilmesi i&ccedil;in ve
+          <a href="socache.html">socache</a> aray&uuml;z&uuml; ile sağlanan soysal
+          anahtar/değer &ouml;nbelleklemesi yanında <code class="module"><a href="./mod/mod_file_cache.html">mod_file_cache</a></code>
+          gibi mekanizmalarla sağlanan &ouml;zelleştirilebilir arabelleklemeyi de
+          kapsamak &uuml;zere yeniden yazıldı.</dd>
+
+    </dl>
+  </div><div class="top"><a href="#page-header"><img alt="top" src="./images/up.gif"></a></div>
+<div class="section">
+<h2 id="developer">Mod&uuml;l Geliştirici Değişiklikleri <a title="Permanent link" href="#developer" class="permalink">&para;</a></h2>
+    
+    <dl>
+      <dt>Yapılandırma Denetleme Kancası Eklendi</dt>
+
+      <dd>Yeni bir kanca, <code>check_config</code> kancası,
+        <code>pre_config</code> ve <code>open_logs</code> kancaları arasında
+        &ccedil;alışmak &uuml;zere eklendi. Ayrıca, <code class="program"><a href="./programs/httpd.html">httpd</a></code>'ye
+        <code>-t</code> se&ccedil;eneği verildiğinde <code>test_config</code>
+        kancasından &ouml;nce &ccedil;alışır. <code>check_config</code> kancası, mod&uuml;llerin
+        karşılıklı bağımlı yapılandırma y&ouml;nergesi değerlerini yeniden
+        yoklamasını ve iletiler konsola hala g&uuml;nl&uuml;klenebiliyorken bunların
+        ayarlanabilmesini sağlar. Temel <code>open_logs</code> kanca işlevi
+        konsol &ccedil;ıktısını hata g&uuml;nl&uuml;ğ&uuml;ne y&ouml;nlendirmeden &ouml;nce hatalı yapılandırma
+        sorunlarına karşı kullanıcı uyarılabilir.</dd>
+
+      <dt>İfade &Ccedil;&ouml;z&uuml;mleyici Eklendi</dt>
+
+      <dd>Artık genel ama&ccedil;lı bir ifade &ccedil;&ouml;z&uuml;mleyicimiz var. API
+        <var>ap_expr.h</var> i&ccedil;inde incelenebilir. Evvelce
+        <code class="module"><a href="./mod/mod_ssl.html">mod_ssl</a></code> i&ccedil;inde ger&ccedil;eklenmiş olan ifade &ccedil;&ouml;z&uuml;mleyiciden
+        esinlenildi.</dd>
+
+      <dt>Yetkilendirme Kuralları Taşıyıcıları</dt>
+
+      <dd>Yetkilendirme mod&uuml;lleri, <code class="directive"><a href="./mod/mod_authz_core.html#requireall">&lt;RequireAll&gt;</a></code> gibi gelişmiş yetkilendirme
+        kuralı taşıyıcılarını desteklemek i&ccedil;in ap_register_auth_provider()
+        &uuml;zerinden artık bir sağlayıcı olarak &ccedil;alıştırılabilmektedir.</dd>
+
+      <dt>K&uuml;&ccedil;&uuml;k Nesne Arabellekleme Aray&uuml;z&uuml;</dt>
+
+      <dd><var>ap_socache.h</var>, evvelki <code class="module"><a href="./mod/mod_ssl.html">mod_ssl</a></code> oturum
+        arabelleği ger&ccedil;eklenimine dayalı olarak k&uuml;&ccedil;&uuml;k veri nesnelerini
+        arabelleklemek i&ccedil;in sağlayıcı temelli bir aray&uuml;z ortaya koyar.
+        Paylaşımlı bellek &ccedil;evrimsel tamponu kullanan sağlayıcılar, disk bazlı
+        dbm dosyaları ve memcache ile dağıtılan arabellekler şu an
+        desteklenmektedir.</dd>
+
+      <dt>Arabellek Durum Kancası Eklendi</dt>
+
+      <dd><code class="module"><a href="./mod/mod_cache.html">mod_cache</a></code> mod&uuml;l&uuml; artık, arabellekleme kararı bilinir
+        olduğunda &ccedil;ağrılan yeni bir <code>cache_status</code> kancası i&ccedil;eriyor.
+        &Ouml;ntanımlı ger&ccedil;eklenim, yanıta istemlik bir <code>X-Cache</code> ve
+        <code>X-Cache-Detail</code> ekleyebilmektedir.</dd>
+    </dl>
+
+    <p>Geliştirici belgeleri <a href="developer/new_api_2_4.html">API
+      değişikliklerinin ayrıntılı bir listesini</a> i&ccedil;ermektedir.</p>
+  </div></div>
+<div class="bottomlang">
+<p><span>Mevcut Diller: </span><a href="./en/new_features_2_4.html" hreflang="en" rel="alternate" title="English">&nbsp;en&nbsp;</a> |
+<a href="./es/new_features_2_4.html" hreflang="es" rel="alternate" title="Espa&ntilde;ol">&nbsp;es&nbsp;</a> |
+<a href="./fr/new_features_2_4.html" hreflang="fr" rel="alternate" title="Fran&ccedil;ais">&nbsp;fr&nbsp;</a> |
+<a href="./pt-br/new_features_2_4.html" hreflang="pt-br" rel="alternate" title="Portugu&ecirc;s (Brasil)">&nbsp;pt-br&nbsp;</a> |
+<a href="./tr/new_features_2_4.html" title="T&uuml;rk&ccedil;e">&nbsp;tr&nbsp;</a></p>
+</div><div id="footer">
+<p class="apache">Copyright 2026 The Apache Software Foundation.<br><a href="https://www.apache.org/licenses/LICENSE-2.0">Apache License, Version 2.0</a> adı altında lisanslıdır.</p>
+<p class="menu"><a href="./mod/">Mod&uuml;ller</a> | <a href="./mod/quickreference.html">Y&ouml;nergeler</a> | <a href="https://cwiki.apache.org/confluence/display/httpd/FAQ">SSS</a> | <a href="./glossary.html">Terimler</a> | <a href="./sitemap.html">Site Haritası</a> | <a href="https://bz.apache.org/bugzilla/enter_bug.cgi?product=Apache%20httpd-2">Report a bug</a></p></div><script><!--//--><![CDATA[//><!--
+if (typeof(prettyPrint) !== 'undefined') {
+    prettyPrint();
+}
+var langToggle = document.querySelector('.lang-toggle');
+var topLang = document.querySelector('.toplang');
+if (langToggle && topLang) {
+    langToggle.addEventListener('click', function() { topLang.classList.toggle('open'); });
+}
+var qv = document.getElementById('quickview');
+if (qv) {
+    document.body.appendChild(qv);
+    var qvBtn = document.createElement('button');
+    qvBtn.className = 'qv-toggle';
+    qvBtn.setAttribute('aria-label', 'Toggle page navigation');
+    qvBtn.innerHTML = '&#9776;';
+    document.body.appendChild(qvBtn);
+    qvBtn.addEventListener('click', function() {
+        var isOpen = qv.classList.toggle('open');
+        if (isOpen) {
+            qv.style.top = window.scrollY + 10 + 'px';
+        }
+    });
+    window.addEventListener('scroll', function() { qv.classList.remove('open'); });
+}
+//--><!]]></script>
+</body></html>

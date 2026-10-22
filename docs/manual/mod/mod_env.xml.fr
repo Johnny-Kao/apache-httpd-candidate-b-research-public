@@ -1,0 +1,200 @@
+<?xml version="1.0"?>
+<!DOCTYPE modulesynopsis SYSTEM "../style/modulesynopsis.dtd">
+<?xml-stylesheet type="text/xsl" href="../style/manual.fr.xsl"?>
+<!-- English Revision : 1938506 -->
+<!-- French translation : Lucien GENTIS -->
+<!-- Reviewed by : Vincent Deffontaines -->
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<modulesynopsis metafile="mod_env.xml.meta">
+
+<name>mod_env</name>
+<description>Modifie l'environnement transmis aux scripts CGI et aux
+pages SSI</description>
+<status>Base</status>
+<sourcefile>mod_env.c</sourcefile>
+<identifier>env_module</identifier>
+<summary>
+    <p>Ce module permet de contrôler les variables d'environnement
+    internes utilisées par divers modules du serveur HTTP Apache. Ces
+    variables sont aussi accessibles aux scripts CGI en tant que
+    variables d'environnement système natives, et disponibles dans les
+    pages SSI. Les variables d'environnement peuvent
+    être transmises depuis le shell qui a lancé le processus
+    <program>httpd</program>. Elles peuvent également être définies ou
+    supprimées au cours du processus de configuration.</p>
+</summary>
+<seealso><a href="../env.html">Variables d'environnement</a></seealso>
+<seealso><directive module="mod_setenvif">SetEnvIf</directive></seealso>
+
+<directivesynopsis>
+<name>PassEnv</name>
+<description>Transmet des variables d'environnement depuis le
+shell</description>
+<syntax>PassEnv <var>var-env</var> [<var>var-env</var>]
+...</syntax>
+<contextlist><context>server config</context><context>virtual host</context>
+<context>directory</context><context>.htaccess</context></contextlist>
+<override>FileInfo</override>
+
+<usage>
+    <p>Cette directive permet de spécifier quelles variables
+    d'environnement système natives doivent être disponibles en tant que
+    variables d'environnement internes pour les modules du serveur HTTP
+    Apache, et propagées vers les scripts CGI et les pages SSI. Leurs
+    valeurs sont issues de l'environnement natif de l'OS associé au
+    shell qui a invoqué le processus <program>httpd</program>.</p>
+
+    <example><title>Exemple</title>
+    <highlight language="config">
+      PassEnv LD_LIBRARY_PATH
+      </highlight>
+    </example>
+</usage>
+</directivesynopsis>
+
+<directivesynopsis>
+<name>SetEnv</name>
+<description>Définit des variables d'environnement</description>
+<syntax>SetEnv <var>var-env</var> [<var>valeur</var>]</syntax>
+<contextlist><context>server config</context><context>virtual host</context>
+<context>directory</context><context>.htaccess</context></contextlist>
+<override>FileInfo</override>
+
+<usage>
+    <p>Définit une variable d'environnement interne, cette dernière étant
+    ensuite disponible pour les modules du serveur HTTP Apache et
+    transmise aux scripts CGI et aux pages SSI.</p>
+
+    <example><title>Exemple</title>
+    <highlight language="config">
+      SetEnv SPECIAL_PATH /foo/bin
+      </highlight>
+    </example>
+
+    <p>Si l'argument <var>valeur</var> est absent, la variable est
+    définie à la valeur d'une chaîne vide.</p>
+
+    <note><p>Les variables d'environnement internes définies par cette
+    directive le sont <em>après</em> l'exécution de la plupart des
+    directives du traitement initial des requêtes, comme les contrôles
+    d'accès et la mise en correspondance des URIs avec les noms de
+    fichiers. Si la variable d'environnement est sensée intervenir au
+    cours de cette phase initiale du traitement, par exemple pour la
+    directive <directive module="mod_rewrite">RewriteRule</directive>,
+    vous devez plutôt utiliser la directive <directive
+    module="mod_setenvif">SetEnvIf</directive> pour définir cette
+    variable.</p>
+    </note>
+
+</usage>
+<seealso><a href="../env.html">Variables d'environnement</a></seealso>
+</directivesynopsis>
+
+<directivesynopsis>
+<name>UnsetEnv</name>
+<description>Supprime des variables de l'environnement</description>
+<syntax>UnsetEnv <var>var-env</var> [<var>var-env</var>]
+...</syntax>
+<contextlist><context>server config</context><context>virtual host</context>
+<context>directory</context><context>.htaccess</context></contextlist>
+<override>FileInfo</override>
+
+<usage>
+    <p>Supprime une ou plusieurs variables d'environnement internes parmi celles
+    qui sont transmises aux scripts CGI et aux pages SSI.</p>
+
+    <example><title>Exemple</title>
+    <highlight language="config">
+      UnsetEnv LD_LIBRARY_PATH
+      </highlight>
+    </example>
+</usage>
+</directivesynopsis>
+
+<directivesynopsis>
+<name>SetEnvFromFile</name>
+<description>Définitions de variables d’environnement à partir d’un fichier</description>
+<syntax>SetEnvFromFile <var>file-path</var></syntax>
+<contextlist><context>server config</context><context>virtual host</context>
+<context>directory</context></contextlist>
+<compatibility>Disponible à partir de la version 2.5.1 du serveur HTTP Apache.</compatibility>
+
+<usage>
+    <p>Cette directive permet de définir des variables d’environnement internes
+    à partir d’un fichier ; ces dernières sont alors disponibles pour les
+    modules du serveur HTTP Apache et passées aux scripts CGI et aux pages SSI.
+    Mis à part le fait que les valeurs des variables sont enregistrées dans un
+    fichier séparé, cette directive a le même effet qu’une liste de directives
+    <directive module="mod_env">SetEnv</directive> directives, chacune d’entre
+    elles définissant une variable.</p>
+
+    <p><var>file-path</var> est soit un chemin absolu, soit un chemin relatif à
+    la valeur de la directive <directive module="core">ServerRoot</directive>.
+    Le fichier est lu une seule fois lors de l’analyse de la configuration ; ses
+    éventuelles modifications ne seront prises en compte qu’après un redémarrage
+    du serveur.</p>
+
+    <p>Chaque ligne du fichier se présente sous la forme
+    <code>nom=valeur</code>. Les lignes vides ou commençant par <code>#</code>
+    sont ignorées, et les blancs en début et en fin de ligne sont supprimés. Si
+    une ligne ne contient pas de signe <code>=</code>, la variable
+    correspondante se voit affecter une chaîne vide. Une ligne se terminant par
+    une controblique (<code>\</code>) continue à la ligne suivante, comme dans
+    les fichiers de configuration principaux.</p>
+
+    <example><title>Exemple</title>
+    <highlight language="config">
+      SetEnvFromFile conf/app.env
+      </highlight>
+    </example>
+
+    <example><title>Exemple de fichier (<code>conf/app.env</code>)</title>
+    <highlight language="config">
+      # Application settings
+      APP_MODE=production
+      SPECIAL_PATH=/foo/bin
+      </highlight>
+    </example>
+
+    <note><p>Comme pour la directive <directive
+    module="mod_env">SetEnv</directive>, les variables sont définies
+    <em>après</em> que la plupart des directives précoces de traitement des
+    requêtes ont été exécutées, comme le contrôle d’accès et le mappage URI-Nom
+    de fichier.</p>
+    </note>
+
+    <note type="warning"><title>Sécurité</title>
+    <p>À la différence de <directive module="mod_env">SetEnv</directive>, cette
+    directive lit le <em>contenu</em> d’un fichier vers l’environnement interne,
+    où il peut être exposé par CGI, SSI, journalisation et autres consommateurs.
+    Afin d’empêcher un utilisateur non fiable de divulguer le contenu de tout
+    fichier lisible par le serveur (par exemple les fichiers de configuration ou
+    de données d’authentification ailleurs sur l’hôte), la directive
+    <directive>SetEnvFromFile</directive> n’est <strong>pas</strong> autorisée
+    dans les fichiers <code>.htaccess</code> ; elle ne peut être utilisée que
+    dans la configuration globale du serveur.</p>
+    </note>
+</usage>
+<seealso><a href="../env.html">Variables d’environnement</a></seealso>
+<seealso><directive module="mod_env">SetEnv</directive></seealso>
+</directivesynopsis>
+
+</modulesynopsis>
+

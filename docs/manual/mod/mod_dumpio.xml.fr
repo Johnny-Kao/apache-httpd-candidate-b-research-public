@@ -1,0 +1,104 @@
+<?xml version="1.0"?>
+<!DOCTYPE modulesynopsis SYSTEM "../style/modulesynopsis.dtd">
+<?xml-stylesheet type="text/xsl" href="../style/manual.fr.xsl"?>
+<!-- English Revision : 1421821 -->
+<!-- French translation : Lucien GENTIS -->
+<!-- Reviewed by : Vincent Deffontaines -->
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<modulesynopsis metafile="mod_dumpio.xml.meta">
+
+<name>mod_dumpio</name>
+<description>Enregistre toutes les entrées/sorties dans le journal des
+erreurs de la manière souhaitée.</description>
+<status>Extension</status>
+<sourcefile>mod_dumpio.c</sourcefile>
+<identifier>dumpio_module</identifier>
+
+<summary>
+    <p><code>mod_dumpio</code> permet d'enregistrer toutes les entrées
+    reçues par Apache et/ou toutes les sorties envoyées par ce dernier
+    dans le fichier error.log.
+    </p>
+
+    <p>L'enregistrement des données s'effectue juste après
+    le décodage SSL (pour les entrées), et juste avant le codage SSL (pour les
+    sorties). Comme on peut s'y attendre, tout ceci peut représenter un
+    volume important de données, et ne doit être
+    utilisé qu'à des fins de débogage.</p>
+</summary>
+
+<section id="enable">
+    <title>Activation du support dumpio</title>
+
+    <p>Pour activer le module, ce dernier doit être compilé et chargé
+    par l'intermédiaire de la configuration de votre instance d'Apache.
+    La journalisation peut ensuite être activée ou
+    désactivée séparément
+    pour les entrées et sorties à l'aide des directives ci-dessous. En
+    outre, <module>mod_dumpio</module> doit être configuré à <directive
+    module="core">LogLevel</directive> <code>trace7</code> :</p>
+    <highlight language="config">
+      LogLevel dumpio:trace7
+    </highlight>
+</section>
+
+<directivesynopsis>
+
+<name>DumpIOInput</name>
+<description>Enregistre toutes les entrées dans le journal des
+erreurs</description>
+<syntax>DumpIOInput On|Off</syntax>
+<default>DumpIOInput Off</default>
+<contextlist><context>server config</context></contextlist>
+
+<usage>
+    <p>Active la journalisation de toutes les entrées.</p>
+
+    <example><title>Exemple</title>
+    <highlight language="config">
+      DumpIOInput On
+      </highlight>
+    </example>
+</usage>
+
+</directivesynopsis>
+
+<directivesynopsis>
+
+<name>DumpIOOutput</name>
+<description>Enregistre toutes les sorties dans le journal des
+erreurs</description>
+<syntax>DumpIOOutput On|Off</syntax>
+<default>DumpIOOutput Off</default>
+<contextlist><context>server config</context></contextlist>
+
+<usage>
+    <p>Active la journalisation de toutes les sorties.</p>
+
+    <example><title>Exemple</title>
+    <highlight language="config">
+      DumpIOOutput On
+      </highlight>
+    </example>
+</usage>
+
+</directivesynopsis>
+
+</modulesynopsis>

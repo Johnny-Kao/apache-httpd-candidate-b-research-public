@@ -1,0 +1,241 @@
+<!DOCTYPE html SYSTEM "about:legacy-compat">
+<html lang="fr"><head><META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<!--
+        XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+              This file is generated from xml source: DO NOT EDIT
+        XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      -->
+<title>Comment chiffrer votre trafic - Serveur HTTP Apache Version 2.5</title>
+<link href="../style/css/manual.css" rel="stylesheet" media="all" type="text/css" title="Main stylesheet">
+<link href="../style/css/manual-loose-100pc.css" rel="alternate stylesheet" media="all" type="text/css" title="No Sidebar - Default font size">
+<link href="../style/css/manual-print.css" rel="stylesheet" media="print" type="text/css"><link rel="stylesheet" type="text/css" href="../style/css/prettify.css">
+<script src="../style/scripts/prettify.min.js">
+</script>
+
+<link href="../images/favicon.png" rel="shortcut icon"></head>
+<body id="manual-page"><div id="page-header">
+<p class="menu"><a href="../mod/">Modules</a> | <a href="../mod/quickreference.html">Directives</a> | <a href="https://cwiki.apache.org/confluence/display/httpd/FAQ">FAQ</a> | <a href="../glossary.html">Glossaire</a> | <a href="../sitemap.html">Plan du site</a> | <a href="https://bz.apache.org/bugzilla/enter_bug.cgi?product=Apache%20httpd-2">Signaler un bug</a></p>
+<p class="apache">Serveur HTTP Apache Version 2.5</p>
+<img alt="" src="../images/feather.png"></div>
+<div class="up"><a href="./"><img title="<-" alt="<-" src="../images/left.gif"></a></div>
+<div id="path">
+<a href="https://www.apache.org/">Apache</a> &gt; <a href="https://httpd.apache.org/">Serveur HTTP</a> &gt; <a href="https://httpd.apache.org/docs/">Documentation</a> &gt; <a href="../">Version 2.5</a> &gt; <a href="./">Recettes / Tutoriels</a></div><div id="page-content"><div id="preamble"><h1>Comment chiffrer votre trafic</h1>
+<button aria-label="Toggle language list" class="lang-toggle"><svg xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke="currentColor" fill="none" viewBox="0 0 24 24" height="16" width="16"><circle r="10" cy="12" cx="12"/><line y2="12" x2="22" y1="12" x1="2"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></button>
+<div class="toplang">
+<p><span>Langues Disponibles: </span><a href="../en/howto/encrypt.html" hreflang="en" rel="alternate" title="English">&nbsp;en&nbsp;</a> |
+<a href="../es/howto/encrypt.html" hreflang="es" rel="alternate" title="Espa&ntilde;ol">&nbsp;es&nbsp;</a> |
+<a href="../fr/howto/encrypt.html" title="Fran&ccedil;ais">&nbsp;fr&nbsp;</a></p>
+</div>
+
+    <p>Voici un tutoriel qui vous apprendra &agrave; configurer Apache httpd de fa&ccedil;on
+    &agrave; ce qu'il chiffre les transferts de donn&eacute;es entre votre serveur et ses
+    visiteurs. Votre site va alors utiliser des liens en https: &agrave; la place des liens
+    en http: et, si la configuration a &eacute;t&eacute; correctement effectu&eacute;e, la vie
+    priv&eacute;e des clients qui visitent votre site sera mieux prot&eacute;g&eacute;e.
+    </p>
+    <p>
+    Ce tutoriel a &eacute;t&eacute; con&ccedil;u pour les utilisateurs qui ne sont pas
+    familiaris&eacute;s avec SSL/TLS, les algorythmes de chiffrement et tout le
+    bavardage technique associ&eacute; (nous plaisantons, car c'est un domaine d'action
+    s&eacute;rieux avec des experts s&eacute;rieux et de r&eacute;els probl&egrave;mes &agrave; r&eacute;soudre ; mais il
+    est vu comme un bavardage technique par quiconque n'est pas familiaris&eacute; avec
+    lui). En fait, les administrateurs s'entendent dire que leur serveur en http: n'est
+    plus assez s&eacute;curis&eacute;. Il y a tous ces espions et ces mauvais sujets qui nous
+    &eacute;coutent. M&ecirc;me certaines soci&eacute;t&eacute;s tout &agrave; fait l&eacute;gitimes ins&egrave;rent des donn&eacute;es dans
+    leurs pages web et revendent les profils de leurs visiteurs.
+    </p>
+    <p>
+    Avec ce guide, vous devriez &ecirc;tre en mesure de migrer les liens fournis par
+    votre serveur depuis http: vers https: sans qu'il vous soit n&eacute;cessaire au
+    pr&eacute;alable de devenir un expert SSL. Il se peut tout de m&ecirc;me que vous soyez
+    fascin&eacute; par tous ces concepts de chiffrement au point de vouloir les &eacute;tudier
+    en profondeur et ainsi devenir un v&eacute;ritable expert. Mais m&ecirc;me sans aller jusque
+    l&agrave;, vous pourrez tout de m&ecirc;me configurer votre serveur web de mani&egrave;re
+    raisonnablement s&eacute;curis&eacute;e et employer le temps que vous aurez &eacute;conomis&eacute; pour
+    accomplir d'autres choses utiles pour l'humanit&eacute;.
+    </p>
+    <p>
+    Vous allez vous faire une id&eacute;e du r&ocirc;le que jouent ces objets myst&eacute;rieux que
+    l'on nomme "certificats" et "cl&eacute;s priv&eacute;es" et de la mani&egrave;re dont ils sont
+    utilis&eacute;s pour faire en sorte que les visiteurs soient s&ucirc;rs de se connecter
+    au bon serveur. On ne vous dira <em>pas</em> <em>comment</em> ils
+    fonctionnent, mais seulement comment les utiliser ; ils pourront &ecirc;tre vus
+    comme des passeports.
+    </p>
+  </div>
+<div id="quickview"><ul id="toc"><li><img alt="" src="../images/down.gif"> <a href="#protocol">Une br&egrave;ve introduction sur les certificats, ou passeports Internet</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#buycert">Acheter un certificat</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#freecert">Obtenir gratuitement un certificat</a></li>
+</ul><h3>Voir aussi</h3><ul class="seealso"><li><a href="../ssl/ssl_howto.html">Tutoriel SSL</a></li><li><a href="../mod/mod_ssl.html">mod_ssl</a></li><li><a href="../mod/mod_md.html">mod_md</a></li></ul></div>
+<div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="protocol">Une br&egrave;ve introduction sur les certificats, ou passeports Internet <a title="Lien permanent" href="#protocol" class="permalink">&para;</a></h2>
+    
+    <p>
+    Le protocole TLS (anciennement SSL) permet aux clients et serveurs de
+    communiquer entre eux sans que le trafic soit compr&eacute;hensible, m&ecirc;me s'il est
+    intercept&eacute;. C'est le protocole qu'utilise votre serveur lorsque vous ouvrez
+    un lien en https:. 
+    </p>
+    <p>
+    Outre le fait d'avoir une conversation en priv&eacute;, votre
+    navigateur doit aussi &ecirc;tre s&ucirc;r qu'il s'adresse au bon serveur, et non &agrave;
+    quelqu'un d'autre qui se ferait passer pour ce dernier. Ce processus qui
+    intervient apr&egrave;s le chiffrement constitue l'autre partie du protocole TLS.
+    </p>
+    <p>
+    Pour pouvoir &ecirc;tre authentifi&eacute;, votre serveur a besoin tout d'abord d'une
+    impl&eacute;mentation logicielle du protocole TLS, dans notre cas le module <a href="../mod/mod_http2.html">mod_ssl</a>, mais aussi d'un moyen de prouver
+    son identit&eacute; sur Internet. C'est l&agrave; qu'intervient la notion de
+    <em>certificat</em>. En fait, tous les serveurs poss&egrave;dent le m&ecirc;me module
+    mod_ssl et peuvent de ce fait proc&eacute;der au chiffrement des &eacute;changes, mais
+    <em>votre</em> certificat qui est unique n'appartient qu'&agrave; vous, et il vous
+    permet de prouver que vous &ecirc;tes bien vous-m&ecirc;me.
+    </p>
+    <p>
+    Un certificat est l'&eacute;quivalent digital d'un passeport. Il se compose de
+    deux parties : un cachet d'authenticit&eacute; appos&eacute; par les fournisseurs du
+    passeport, et l'&eacute;quivalent de vos empreintes digitales : ce que l'on nomme
+    une <em>cl&eacute; priv&eacute;e</em> dans le jargon du chiffrement.
+    </p>
+    <p>
+    Lorsque vous configurez votre serveur Apache httpd pour les liens en https:,
+    vous devez sp&eacute;cifier le certificat et la cl&eacute; priv&eacute;e. Si vous ne divulguez
+    la cl&eacute; &agrave; personne, vous seul(e) serez en mesure de prouver aux visiteurs que
+    le certificat vous appartient bien. De cette fa&ccedil;on, un navigateur qui se
+    connecte &agrave; nouveau &agrave; votre serveur pourra s'assurer qu'il s'agit bien du
+    m&ecirc;me serveur que celui auquel il s'est connect&eacute; la fois pr&eacute;c&eacute;dente.
+    </p>
+    <p>
+    Mais comment sait-il qu'il s'adresse au bon serveur la premi&egrave;re fois qu'il
+    communique avec lui ? C'est ici qu'intervient le cachet digital
+    d'authenticit&eacute; du fournisseur du certificat. Ce cachet est fourni par un
+    tiers qui utilise pour cela sa propre cl&eacute; priv&eacute;e. Cette personne poss&egrave;de
+    aussi un certificat, autrement dit son propre passeport. Le navigateur peut
+    s'assurer que ce passeport utilise la m&ecirc;me cl&eacute; que celle qui a &eacute;t&eacute; utilis&eacute;e
+    pour cacheter le passeport de votre serveur. Maintenant, au lieu de
+    s'assurer que votre passeport est correct, il doit s'assurer de
+    l'authenticit&eacute; du passeport de la personne qui certifie que <em>votre</em>
+    passeport est correct. 
+    </p>
+    <p>
+    Et ce passeport poss&egrave;de aussi un cachet digital d'authenticit&eacute; fourni par
+    une autre personne qui poss&egrave;de elle-m&ecirc;me une cl&eacute; priv&eacute;e et un certificat. Le
+    navigateur n'a alors besoin que de s'assurer que <em>ce dernier</em> soit
+    correct pour faire confiance &agrave; celui qui certifie que celui de votre serveur
+    est correct. Ce jeu de confiance/pas confiance peut ainsi se poursuivre sur
+    plusieurs niveaux (en g&eacute;n&eacute;ral moins de 5).
+    </p>
+    <p>
+    A la fin, le navigateur va se trouver face &agrave; un passeport authentifi&eacute; par
+    sa propre cl&eacute;. C'est le certificat d'une certaine Gloria Gaynor qui dit "I
+    am what I am !". Le navigateur pourra alors faire confiance ou non &agrave; cette
+    Gloria. De son choix d&eacute;coulera la confiance qu'il accordera &agrave; votre serveur.
+    C'est aussi simple que cela.  
+    </p>
+    <p>
+    Il est ais&eacute; de v&eacute;rifier l'authencit&eacute; de Gloria Gaynor sur Internet : votre
+    navigateur (ou votre syst&egrave;me d'exploitation) est fourni avec une liste de
+    passeports de confiance pr&eacute;install&eacute;e. S'il se trouve ainsi face &agrave; un
+    passeport de Gloria, soit ce dernier fait partie de cette liste et on peut
+    donc lui faire confiance, soit ce n'est pas le cas et on ne doit donc pas
+    lui faire confiance.
+    </p>
+    <p>
+    Tout ce processus d'authentification ne fonctionne que si personne ne
+    divulgue ses cl&eacute;s priv&eacute;es. En effet, quiconque parvient &agrave; copier une telle
+    cl&eacute; sera en mesure de violer l'identit&eacute; de son propri&eacute;taire. Et si ce
+    dernier &eacute;tait habilit&eacute; &agrave; cacheter les passeports, l'intrus pourra alors faire
+    de m&ecirc;me, et tous les passeports qu'il aura cachet&eacute;s passeront pour 100%
+    valides et impossibles &agrave; distinguer des vrais.
+    </p>
+    <p>
+    Ce mod&egrave;le d'authentification fonctionne donc, mais il a ses limites. C'est
+    pourquoi les &eacute;diteurs de navigateurs s'attachent tant &agrave; maintenir des listes
+    valides de passeports "Gloria Gaynor" et menacent d'en expulser quiconque
+    ne prend pas suffisamment soin de ses cl&eacute;s.
+    </p>
+  </div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="buycert">Acheter un certificat <a title="Lien permanent" href="#buycert" class="permalink">&para;</a></h2>
+    
+    <p>Vous pouvez effectivement en acheter un. De nombreuses soci&eacute;t&eacute;s vendent
+    des passeports Internet en tant que service. Dans <a href="https://ccadb-public.secure.force.com/mozilla/IncludedCACertificateReport">cette
+    liste de chez Mozilla</a>, vous trouverez toutes les soci&eacute;t&eacute;s auxquelles le
+    navigateur Firefox fait confiance. Choisissez-en une et visitez son site
+    web. Elle vous indiquera alors les tarifs, et comment leur prouver que vous &ecirc;tes
+    bien qui vous pr&eacute;tendez &ecirc;tre de fa&ccedil;on &agrave; ce qu'elle puisse cacheter votre
+    passeport en toute confiance. 
+    </p>
+    <p>Elles poss&egrave;dent toutes leur propre m&eacute;thode qui d&eacute;pend
+    aussi du type de passeport que vous demandez, mais elle consiste le plus
+    souvent en quelques clicks dans une interface web. Vous recevrez alors un
+    email auquel vous devrez r&eacute;pondre ou effectuer une autre action. Enfin vous
+    serez inform&eacute;(e) sur la mani&egrave;re de proc&eacute;der pour g&eacute;n&eacute;rer votre propre cl&eacute;
+    priv&eacute;e et vous recevrez alors un passeport cachet&eacute; qui lui correspondra.
+    </p>
+    <p>
+    Il vous restera alors &agrave; placer la cl&eacute; dans un fichier et le certificat dans
+    un autre. Vous devrez alors placer ces fichiers sur votre serveur (tout en
+    vous assurant que seuls les utilisateurs de confiance puissent lire la cl&eacute;),
+    et renseigner en cons&eacute;quence votre configuration httpd. Tout ceci est d&eacute;crit
+    en d&eacute;tails dans le <a href="../ssl/ssl_howto.html">tutoriel SSL</a>.
+    </p>
+    <p>
+    </p>
+  </div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="freecert">Obtenir gratuitement un certificat <a title="Lien permanent" href="#freecert" class="permalink">&para;</a></h2>
+    
+    <p>
+    Certaines soci&eacute;t&eacute;s fournissent gratuitement des certificats pour serveurs
+    web. Le pionnier en la mati&egrave;re est <a href="https://letsencrypt.org">Let's
+    Encrypt</a>, un service de l'<a href="https://www.abetterinternet.org/">Internet Security Research Group
+    (ISRG)</a> et une organisation &agrave; but non lucratif ayant pour but d'"enfoncer
+    les barri&egrave;res financi&egrave;res, technologiques et &eacute;ducatives afin de s&eacute;curiser
+    les communications sur Internet".
+    </p>
+    <p>
+    Elles n'offrent pas seulement des certificats gratuits, elles ont aussi
+    d&eacute;velopp&eacute; une interface que votre serveur httpd peut utiliser pour en obtenir
+    un. C'est ici que <a href="../mod/mod_md.html">mod_md</a> entre en sc&egrave;ne.
+    </p>
+    <p>
+    (il vous reste maintenant &agrave; &eacute;tudier la mani&egrave;re de configurer mod_md et les serveurs
+    virtuels ...)
+    </p>
+  </div></div>
+<div class="bottomlang">
+<p><span>Langues Disponibles: </span><a href="../en/howto/encrypt.html" hreflang="en" rel="alternate" title="English">&nbsp;en&nbsp;</a> |
+<a href="../es/howto/encrypt.html" hreflang="es" rel="alternate" title="Espa&ntilde;ol">&nbsp;es&nbsp;</a> |
+<a href="../fr/howto/encrypt.html" title="Fran&ccedil;ais">&nbsp;fr&nbsp;</a></p>
+</div><div id="footer">
+<p class="apache">Copyright 2026 The Apache Software Foundation.<br>Autoris&eacute; sous <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache License, Version 2.0</a>.</p>
+<p class="menu"><a href="../mod/">Modules</a> | <a href="../mod/quickreference.html">Directives</a> | <a href="https://cwiki.apache.org/confluence/display/httpd/FAQ">FAQ</a> | <a href="../glossary.html">Glossaire</a> | <a href="../sitemap.html">Plan du site</a> | <a href="https://bz.apache.org/bugzilla/enter_bug.cgi?product=Apache%20httpd-2">Signaler un bug</a></p></div><script><!--//--><![CDATA[//><!--
+if (typeof(prettyPrint) !== 'undefined') {
+    prettyPrint();
+}
+var langToggle = document.querySelector('.lang-toggle');
+var topLang = document.querySelector('.toplang');
+if (langToggle && topLang) {
+    langToggle.addEventListener('click', function() { topLang.classList.toggle('open'); });
+}
+var qv = document.getElementById('quickview');
+if (qv) {
+    document.body.appendChild(qv);
+    var qvBtn = document.createElement('button');
+    qvBtn.className = 'qv-toggle';
+    qvBtn.setAttribute('aria-label', 'Toggle page navigation');
+    qvBtn.innerHTML = '&#9776;';
+    document.body.appendChild(qvBtn);
+    qvBtn.addEventListener('click', function() {
+        var isOpen = qv.classList.toggle('open');
+        if (isOpen) {
+            qv.style.top = window.scrollY + 10 + 'px';
+        }
+    });
+    window.addEventListener('scroll', function() { qv.classList.remove('open'); });
+}
+//--><!]]></script>
+</body></html>

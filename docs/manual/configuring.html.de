@@ -1,0 +1,220 @@
+<!DOCTYPE html SYSTEM "about:legacy-compat">
+<html lang="de"><head><META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<!--
+        XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+              This file is generated from xml source: DO NOT EDIT
+        XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      -->
+<title>Konfigurationsdateien - Apache HTTP Server Version 2.5</title>
+<link href="./style/css/manual.css" rel="stylesheet" media="all" type="text/css" title="Main stylesheet">
+<link href="./style/css/manual-loose-100pc.css" rel="alternate stylesheet" media="all" type="text/css" title="No Sidebar - Default font size">
+<link href="./style/css/manual-print.css" rel="stylesheet" media="print" type="text/css"><link rel="stylesheet" type="text/css" href="./style/css/prettify.css">
+<script src="./style/scripts/prettify.min.js">
+</script>
+
+<link href="./images/favicon.png" rel="shortcut icon"></head>
+<body id="manual-page"><div id="page-header">
+<p class="menu"><a href="./mod/">Module</a> | <a href="./mod/quickreference.html">Direktiven</a> | <a href="https://cwiki.apache.org/confluence/display/httpd/FAQ">FAQ</a> | <a href="./glossary.html">Glossar</a> | <a href="./sitemap.html">Seitenindex</a> | <a href="https://bz.apache.org/bugzilla/enter_bug.cgi?product=Apache%20httpd-2">Report a bug</a></p>
+<p class="apache">Apache HTTP Server Version 2.5</p>
+<img alt="" src="./images/feather.png"></div>
+<div class="up"><a href="./"><img title="<-" alt="<-" src="./images/left.gif"></a></div>
+<div id="path">
+<a href="https://www.apache.org/">Apache</a> &gt; <a href="https://httpd.apache.org/">HTTP-Server</a> &gt; <a href="https://httpd.apache.org/docs/">Dokumentation</a> &gt; <a href="./">Version 2.5</a></div><div id="page-content"><div id="preamble"><h1>Konfigurationsdateien</h1>
+<button aria-label="Toggle language list" class="lang-toggle"><svg xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke="currentColor" fill="none" viewBox="0 0 24 24" height="16" width="16"><circle r="10" cy="12" cx="12"/><line y2="12" x2="22" y1="12" x1="2"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></button>
+<div class="toplang">
+<p><span>Verf&uuml;gbare Sprachen: </span><a href="./de/configuring.html" title="Deutsch">&nbsp;de&nbsp;</a> |
+<a href="./en/configuring.html" hreflang="en" rel="alternate" title="English">&nbsp;en&nbsp;</a> |
+<a href="./fr/configuring.html" hreflang="fr" rel="alternate" title="Fran&ccedil;ais">&nbsp;fr&nbsp;</a> |
+<a href="./ja/configuring.html" hreflang="ja" rel="alternate" title="Japanese">&nbsp;ja&nbsp;</a> |
+<a href="./ko/configuring.html" hreflang="ko" rel="alternate" title="Korean">&nbsp;ko&nbsp;</a> |
+<a href="./tr/configuring.html" hreflang="tr" rel="alternate" title="T&uuml;rk&ccedil;e">&nbsp;tr&nbsp;</a></p>
+</div>
+<div class="outofdate">Diese &Uuml;bersetzung ist m&ouml;glicherweise
+            nicht mehr aktuell. Bitte pr&uuml;fen Sie die englische Version auf
+            die neuesten &Auml;nderungen.</div>
+
+    <p>Dieses Dokument beschreibt die Dateien, die zur Konfiguration des Apache
+      HTTP Servers verwendet werden.</p>
+  </div>
+<div id="quickview"><ul id="toc"><li><img alt="" src="./images/down.gif"> <a href="#main">Hauptkonfigurationsdateien</a></li>
+<li><img alt="" src="./images/down.gif"> <a href="#syntax">Syntax der Konfigurationsdateien</a></li>
+<li><img alt="" src="./images/down.gif"> <a href="#modules">Module</a></li>
+<li><img alt="" src="./images/down.gif"> <a href="#scope">Der G&uuml;ltigkeitsbereich von Direktiven</a></li>
+<li><img alt="" src="./images/down.gif"> <a href="#htaccess">.htaccess-Dateien</a></li>
+</ul></div>
+<div class="top"><a href="#page-header"><img alt="top" src="./images/up.gif"></a></div>
+<div class="section">
+<h2 id="main">Hauptkonfigurationsdateien <a title="Permanent link" href="#main" class="permalink">&para;</a></h2>
+    
+    <table class="related"><tr><th>Referenzierte Module</th><th>Referenzierte Direktiven</th></tr><tr><td><ul><li><code class="module"><a href="./mod/mod_mime.html">mod_mime</a></code></li></ul></td><td><ul><li><code class="directive"><a href="./mod/core.html#ifdefine">&lt;IfDefine&gt;</a></code></li><li><code class="directive"><a href="./mod/core.html#include">Include</a></code></li><li><code class="directive"><a href="./mod/mod_mime.html#typesconfig">TypesConfig</a></code></li></ul></td></tr></table>
+
+    <p>Der Apache wird konfiguriert, indem <a href="mod/directives.html">Direktiven</a> in einfache Textdateien
+      eingetragen werden. Die Hauptkonfigurationsdatei hei&szlig;t
+      &uuml;blicherweise <code>httpd.conf</code>. Der Ablageort dieser Datei
+      wird bei der Kompilierung festgelegt, kann jedoch mit der
+      Befehlszeilenoption <code>-f</code> &uuml;berschrieben werden. Durch
+      Verwendung der Direktive  <code class="directive"><a href="./mod/core.html#include">Include</a></code>
+      k&ouml;nnen au&szlig;erdem weitere Konfigurationsdateien hinzugef&uuml;gt
+      werden. Zum Einf&uuml;gen von mehreren Konfigurationsdateien k&ouml;nnen
+      Platzhalter verwendet werden. Jede Direktive darf in jeder dieser
+      Konfigurationsdateien angegeben werden. &Auml;nderungen in den
+      Hauptkonfigurationsdateien werden vom Apache nur beim Start oder Neustart
+      erkannt.</p>
+
+    <p>Der Server liest auch eine Datei mit MIME-Dokumenttypen ein. Der
+      Name dieser Datei wird durch die Direktive <code class="directive"><a href="./mod/mod_mime.html#typesconfig">TypesConfig</a></code> bestimmt. Die Voreinstellung
+      ist <code>mime.types</code>.</p>
+  </div><div class="top"><a href="#page-header"><img alt="top" src="./images/up.gif"></a></div>
+<div class="section">
+<h2 id="syntax">Syntax der Konfigurationsdateien <a title="Permanent link" href="#syntax" class="permalink">&para;</a></h2>
+    
+
+    <p>Die Konfigurationsdateien des Apache enthalten eine Direktive pro Zeile.
+      Der Backslash "\" l&auml;&szlig;t sich als letztes Zeichen in einer Zeile
+      dazu verwenden, die Fortsetzung der Direktive in der n&auml;chsten Zeile
+      anzuzeigen. Es darf kein weiteres Zeichen oder Whitespace zwischen dem
+      Backslash und dem Zeilenende folgen.</p>
+
+    <p>In den Konfigurationsdateien wird bei den Direktiven nicht zwischen
+      Gro&szlig;- und Kleinschreibung unterschieden. Bei den Argumenten der
+      Direktiven wird dagegen oftmals zwischen Gro&szlig;- und Kleinschreibung
+      differenziert. Zeilen, die mit dem Doppelkreuz "#" beginnen, werden als
+      Kommentare betrachtet und ignoriert. Kommentare d&uuml;rfen
+      <strong>nicht</strong> am Ende einer Zeile nach der Direktive
+      eingef&uuml;gt werden. Leerzeilen und Whitespaces vor einer Direktive
+      werden ignoriert. Dadurch lassen sich Direktiven zur besseren Lesbarbeit
+      einr&uuml;cken.</p>
+
+    <p>Sie k&ouml;nnen die Syntax Ihrer Konfigurationsdateien auf Fehler
+      pr&uuml;fen, ohne den Server zu starten, indem Sie <code>apachectl
+        configtest</code> oder die Befehlszeilenoption <code>-t</code>
+      verwenden.</p>
+  </div><div class="top"><a href="#page-header"><img alt="top" src="./images/up.gif"></a></div>
+<div class="section">
+<h2 id="modules">Module <a title="Permanent link" href="#modules" class="permalink">&para;</a></h2>
+    
+
+    <table class="related"><tr><th>Referenzierte Module</th><th>Referenzierte Direktiven</th></tr><tr><td><ul><li><code class="module"><a href="./mod/mod_so.html">mod_so</a></code></li></ul></td><td><ul><li><code class="directive"><a href="./mod/core.html#ifmodule">&lt;IfModule&gt;</a></code></li><li><code class="directive"><a href="./mod/mod_so.html#loadmodule">LoadModule</a></code></li></ul></td></tr></table>
+
+    <p>Der Apache ist ein modularer Server. Das bedeutet, dass nur die abolute
+      Grundfunktionalit&auml;t im Kernserver enthalten ist. Weitergehende
+      F&auml;higkeiten sind mittels <a href="mod/">Modulen</a> verf&uuml;gbar,
+      die in den Apache geladen werden k&ouml;nnen. Standardm&auml;&szlig;ig
+      wird bei der Kompilierung ein Satz von Basismodulen <span class="transnote">(<em>Anm.d.&Uuml;.:</em> die so
+        genannten <a href="mod/module-dict.html#Status">Base</a>-Module)</span> in den Server eingebunden. Wenn der
+      Server f&uuml;r die Verwendung von <a href="dso.html">dynamisch
+        ladbaren</a> Modulen kompiliert wurde, dann k&ouml;nnen Module separat
+      kompiliert und jederzeit mittels der Direktive <code class="directive"><a href="./mod/mod_so.html#loadmodule">LoadModule</a></code> hinzugef&uuml;gt werden.
+      Andernfalls muss der Apache neu kompiliert werden, um Module
+      hinzuzuf&uuml;gen oder zu entfernen. Konfigurationsanweisungen k&ouml;nnen
+      abh&auml;ngig vom Vorhandensein eines bestimmten Moduls eingesetzt werden,
+      indem sie in einen <code class="directive"><a href="./mod/core.html#ifmodule">&lt;IfModule&gt;</a></code>-Block eingeschlossen werden.</p>
+
+    <p>Um zu sehen, welche Module momentan in den Server einkompiliert sind,
+      kann die Befehlszeilenoption <code>-l</code> verwendet werden.</p>
+  </div><div class="top"><a href="#page-header"><img alt="top" src="./images/up.gif"></a></div>
+<div class="section">
+<h2 id="scope">Der G&uuml;ltigkeitsbereich von Direktiven <a title="Permanent link" href="#scope" class="permalink">&para;</a></h2>
+    
+
+    <table class="related"><tr><th>Referenzierte Module</th><th>Referenzierte Direktiven</th></tr><tr><td></td><td><ul><li><code class="directive"><a href="./mod/core.html#directory">&lt;Directory&gt;</a></code></li><li><code class="directive"><a href="./mod/core.html#directorymatch">&lt;DirectoryMatch&gt;</a></code></li><li><code class="directive"><a href="./mod/core.html#files">&lt;Files&gt;</a></code></li><li><code class="directive"><a href="./mod/core.html#filesmatch">&lt;FilesMatch&gt;</a></code></li><li><code class="directive"><a href="./mod/core.html#location">&lt;Location&gt;</a></code></li><li><code class="directive"><a href="./mod/core.html#locationmatch">&lt;LocationMatch&gt;</a></code></li><li><code class="directive"><a href="./mod/core.html#virtualhost">&lt;VirtualHost&gt;</a></code></li></ul></td></tr></table>
+
+    <p>Direktiven in den Hauptkonfigurationsdateien gelten f&uuml;r den
+      gesamten Server. Wenn Sie die Konfiguration nur f&uuml;r einen Teil des
+      Servers ver&auml;ndern m&ouml;chten, k&ouml;nnen Sie den
+      G&uuml;ltigkeitsbereich der Direktiven beschr&auml;nken, indem Sie diese
+      in <code class="directive"><a href="./mod/core.html#directory">&lt;Directory&gt;</a></code>-,
+      <code class="directive"><a href="./mod/core.html#directorymatch">&lt;DirectoryMatch&gt;</a></code>-,
+      <code class="directive"><a href="./mod/core.html#files">&lt;Files&gt;</a></code>-,
+      <code class="directive"><a href="./mod/core.html#filesmatch">&lt;FilesMatch&gt;</a></code>-,
+      <code class="directive"><a href="./mod/core.html#location">&lt;Location&gt;</a></code>- oder
+      <code class="directive"><a href="./mod/core.html#locationmatch">&lt;LocationMatch&gt;</a></code>-Abschnitte eingef&uuml;gen.
+      Diese Abschnitte begrenzen die Anwendung der umschlossenen Direktiven
+      auf bestimmte Pfade des Dateisystems oder auf
+      bestimmte URLs. Sie k&ouml;nnen f&uuml;r eine fein abgestimmte
+      Konfiguration auch ineinander verschachtelt werden.</p>
+    
+    
+    <p>Der Apache besitzt die F&auml;higkeit, mehrere verschiedene Websites
+      gleichzeitig zu bedienen. Dies wird <a href="vhosts/">virtuelles
+        Hosten</a> genannt. Direktiven k&ouml;nnen auch in ihrem
+      G&uuml;ltigkeitsgereich eingeschr&auml;nkt werden, indem sie innerhalb
+      eines <code class="directive"><a href="./mod/core.html#virtualhost">&lt;VirtualHost&gt;</a></code>-Abschnittes angegeben werden.
+      Sie werden dann nur auf Anfragen f&uuml;r eine bestimmte Website
+      angewendet.</p>
+
+    <p>Obwohl die meisten Direktiven in jedem dieser Abschnitte platziert
+      werden k&ouml;nnen, ergeben einige Direktiven in manchen Kontexten
+      keinen Sinn. Direktiven zur Prozesssteuerung beispielsweise
+      d&uuml;rfen nur im Kontext des Hauptservers angegeben werden. Pr&uuml;fen
+      Sie den <a href="mod/directive-dict.html#Context">Kontext</a> der
+      Direktive, um herauszufinden, welche Direktiven in welche Abschnitte
+      eingef&uuml;gt werden k&ouml;nnen.  Weitere Informationen finden Sie unter
+      "<a href="sections.html">Wie Directory-, Location- und Files-Abschnitte
+        arbeiten</a>".</p>
+    
+  </div><div class="top"><a href="#page-header"><img alt="top" src="./images/up.gif"></a></div>
+<div class="section">
+<h2 id="htaccess">.htaccess-Dateien <a title="Permanent link" href="#htaccess" class="permalink">&para;</a></h2>
+    
+
+    <table class="related"><tr><th>Referenzierte Module</th><th>Referenzierte Direktiven</th></tr><tr><td></td><td><ul><li><code class="directive"><a href="./mod/core.html#accessfilename">AccessFileName</a></code></li><li><code class="directive"><a href="./mod/core.html#allowoverride">AllowOverride</a></code></li></ul></td></tr></table>
+
+    <p>Der Apache erm&ouml;glicht die dezentrale Verwaltung der
+      Konfiguration mittes spezieller Dateien innerhalb des
+      Web-Verzeichnisbaums. Diese speziellen Dateien hei&szlig;en
+      gew&ouml;hnlich <code>.htaccess</code>, mit der Direktive <code class="directive"><a href="./mod/core.html#accessfilename">AccessFileName</a></code> kann jedoch auch ein anderer
+      Name festgelegt werden. In <code>.htaccess</code>-Dateien angegebene
+      Direktiven werden auf das Verzeichnis und dessen Unterverzeichnisse
+      angewendet, in dem die Datei abgelegt ist. <code>.htaccess</code>-Dateien
+      folgen der gleichen Syntax wie die Hauptkonfigurationsdateien. Da
+      <code>.htaccess</code>-Dateien bei jeder Anfrage eingelesen werden,
+      werden &Auml;nderungen in diesen Dateien sofort wirksam.</p>
+
+    <p>Pr&uuml;fen Sie den <a href="mod/directive-dict.html#Context">Kontext</a> der Direktive, um
+      herauszufinden, welche Direktiven in <code>.htaccess</code>-Dateien
+      angegeben werden k&ouml;nnen. Dar&uuml;ber hinaus steuert der
+      Serveradministrator mit der Einstellung der Direktive <code class="directive"><a href="./mod/core.html#allowoverride">AllowOverride</a></code> in den
+      Hauptkonfigurationsdateien welche Direktiven in
+      <code>.htaccess</code>-Dateien verwendet werden d&uuml;rfen.</p>
+
+    <p>Weitere Informationen &uuml;ber <code>.htaccess</code>-Dateien finden
+      Sie in der <a href="howto/htaccess.html">.htaccess-Einf&uuml;hrung</a>.</p>
+  </div></div>
+<div class="bottomlang">
+<p><span>Verf&uuml;gbare Sprachen: </span><a href="./de/configuring.html" title="Deutsch">&nbsp;de&nbsp;</a> |
+<a href="./en/configuring.html" hreflang="en" rel="alternate" title="English">&nbsp;en&nbsp;</a> |
+<a href="./fr/configuring.html" hreflang="fr" rel="alternate" title="Fran&ccedil;ais">&nbsp;fr&nbsp;</a> |
+<a href="./ja/configuring.html" hreflang="ja" rel="alternate" title="Japanese">&nbsp;ja&nbsp;</a> |
+<a href="./ko/configuring.html" hreflang="ko" rel="alternate" title="Korean">&nbsp;ko&nbsp;</a> |
+<a href="./tr/configuring.html" hreflang="tr" rel="alternate" title="T&uuml;rk&ccedil;e">&nbsp;tr&nbsp;</a></p>
+</div><div id="footer">
+<p class="apache">Copyright 2026 The Apache Software Foundation.<br>Lizenziert unter der <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache License, Version 2.0</a>.</p>
+<p class="menu"><a href="./mod/">Module</a> | <a href="./mod/quickreference.html">Direktiven</a> | <a href="https://cwiki.apache.org/confluence/display/httpd/FAQ">FAQ</a> | <a href="./glossary.html">Glossar</a> | <a href="./sitemap.html">Seitenindex</a> | <a href="https://bz.apache.org/bugzilla/enter_bug.cgi?product=Apache%20httpd-2">Report a bug</a></p></div><script><!--//--><![CDATA[//><!--
+if (typeof(prettyPrint) !== 'undefined') {
+    prettyPrint();
+}
+var langToggle = document.querySelector('.lang-toggle');
+var topLang = document.querySelector('.toplang');
+if (langToggle && topLang) {
+    langToggle.addEventListener('click', function() { topLang.classList.toggle('open'); });
+}
+var qv = document.getElementById('quickview');
+if (qv) {
+    document.body.appendChild(qv);
+    var qvBtn = document.createElement('button');
+    qvBtn.className = 'qv-toggle';
+    qvBtn.setAttribute('aria-label', 'Toggle page navigation');
+    qvBtn.innerHTML = '&#9776;';
+    document.body.appendChild(qvBtn);
+    qvBtn.addEventListener('click', function() {
+        var isOpen = qv.classList.toggle('open');
+        if (isOpen) {
+            qv.style.top = window.scrollY + 10 + 'px';
+        }
+    });
+    window.addEventListener('scroll', function() { qv.classList.remove('open'); });
+}
+//--><!]]></script>
+</body></html>

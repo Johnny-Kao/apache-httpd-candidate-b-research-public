@@ -1,0 +1,250 @@
+<!DOCTYPE html SYSTEM "about:legacy-compat">
+<html lang="en"><head><META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<!--
+        XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+              This file is generated from xml source: DO NOT EDIT
+        XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      -->
+<title>Dynamic mass virtual hosts with mod_rewrite - Apache HTTP Server Version 2.5</title>
+<link href="../style/css/manual.css" rel="stylesheet" media="all" type="text/css" title="Main stylesheet">
+<link href="../style/css/manual-loose-100pc.css" rel="alternate stylesheet" media="all" type="text/css" title="No Sidebar - Default font size">
+<link href="../style/css/manual-print.css" rel="stylesheet" media="print" type="text/css"><link rel="stylesheet" type="text/css" href="../style/css/prettify.css">
+<script src="../style/scripts/prettify.min.js">
+</script>
+
+<link href="../images/favicon.png" rel="shortcut icon"></head>
+<body id="manual-page"><div id="page-header">
+<p class="menu"><a href="../mod/">Modules</a> | <a href="../mod/quickreference.html">Directives</a> | <a href="https://cwiki.apache.org/confluence/display/httpd/FAQ">FAQ</a> | <a href="../glossary.html">Glossary</a> | <a href="../sitemap.html">Sitemap</a> | <a href="https://bz.apache.org/bugzilla/enter_bug.cgi?product=Apache%20httpd-2">Report a bug</a></p>
+<p class="apache">Apache HTTP Server Version 2.5</p>
+<img alt="" src="../images/feather.png"></div>
+<div class="up"><a href="./"><img title="<-" alt="<-" src="../images/left.gif"></a></div>
+<div id="path">
+<a href="https://www.apache.org/">Apache</a> &gt; <a href="https://httpd.apache.org/">HTTP Server</a> &gt; <a href="https://httpd.apache.org/docs/">Documentation</a> &gt; <a href="../">Version 2.5</a> &gt; <a href="./">Rewrite</a></div><div id="page-content"><div id="preamble"><h1>Dynamic mass virtual hosts with mod_rewrite</h1>
+<button aria-label="Toggle language list" class="lang-toggle"><svg xmlns="http://www.w3.org/2000/svg" stroke-width="2" stroke="currentColor" fill="none" viewBox="0 0 24 24" height="16" width="16"><circle r="10" cy="12" cx="12"/><line y2="12" x2="22" y1="12" x1="2"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></button>
+<div class="toplang">
+<p><span>Available Languages: </span><a href="../de/rewrite/vhosts.html" hreflang="de" rel="alternate" title="Deutsch">&nbsp;de&nbsp;</a> |
+<a href="../en/rewrite/vhosts.html" title="English">&nbsp;en&nbsp;</a> |
+<a href="../es/rewrite/vhosts.html" hreflang="es" rel="alternate" title="Espa&ntilde;ol">&nbsp;es&nbsp;</a> |
+<a href="../fr/rewrite/vhosts.html" hreflang="fr" rel="alternate" title="Fran&ccedil;ais">&nbsp;fr&nbsp;</a> |
+<a href="../ja/rewrite/vhosts.html" hreflang="ja" rel="alternate" title="Japanese">&nbsp;ja&nbsp;</a> |
+<a href="../ko/rewrite/vhosts.html" hreflang="ko" rel="alternate" title="Korean">&nbsp;ko&nbsp;</a> |
+<a href="../tr/rewrite/vhosts.html" hreflang="tr" rel="alternate" title="T&uuml;rk&ccedil;e">&nbsp;tr&nbsp;</a> |
+<a href="../zh-cn/rewrite/vhosts.html" hreflang="zh-cn" rel="alternate" title="Simplified Chinese">&nbsp;zh-cn&nbsp;</a></p>
+</div>
+
+
+<p>This document supplements the <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code>
+<a href="../mod/mod_rewrite.html">reference documentation</a>. It describes
+how you can use <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> to create dynamically
+configured virtual hosts.</p>
+
+<div class="warning"><code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> is usually not the best way to configure
+virtual hosts. You should first consider the <a href="../vhosts/mass.html">alternatives</a> before resorting to
+mod_rewrite. See also the "<a href="avoid.html#vhosts">how to avoid
+mod_rewrite</a> document.</div>
+
+</div>
+<div id="quickview"><ul id="toc"><li><img alt="" src="../images/down.gif"> <a href="#per-hostname">Virtual Hosts For Arbitrary Hostnames</a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#simple.rewrite">Dynamic
+    Virtual Hosts Using <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code></a></li>
+<li><img alt="" src="../images/down.gif"> <a href="#xtra-conf">Using a Separate Virtual Host Configuration File</a></li>
+</ul><h3>See also</h3><ul class="seealso"><li><a href="../mod/mod_rewrite.html">Module documentation</a></li><li><a href="intro.html">mod_rewrite introduction</a></li><li><a href="remapping.html">Redirection and remapping</a></li><li><a href="htaccess.html">Per-directory Rewrites</a></li><li><a href="flags.html">RewriteRule Flags</a></li><li><a href="rewritemap.html">RewriteMap</a></li><li><a href="avoid.html">When not to use mod_rewrite</a></li><li><a href="tech.html">Technical details</a></li></ul></div>
+<div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="per-hostname">Virtual Hosts For Arbitrary Hostnames <a title="Permanent link" href="#per-hostname" class="permalink">&para;</a></h2>
+
+  
+
+  <dl>
+    <dt>Description:</dt>
+
+    <dd>
+    <p>We want to automatically create a virtual host for every hostname
+    which resolves in our domain, without having to create
+    new VirtualHost sections.</p>
+
+    <p>In this recipe, we assume that we'll be using the hostname
+    <code><strong>SITE</strong>.example.com</code> for each
+    user, and serve their content out of
+    <code>/home/<strong>SITE</strong>/www</code>. However, we want
+    <code>www.example.com</code> to be omitted from this mapping.</p>
+    </dd>
+
+    <dt>Solution:</dt>
+
+    <dd>
+
+<pre class="prettyprint lang-config">RewriteEngine on
+
+RewriteMap    lowercase int:tolower
+
+RewriteCond   %{HTTP_HOST} !^www\.
+RewriteCond   ${lowercase:%{<strong>HTTP_HOST</strong>}}   ^<strong>([^.]+)</strong>\.example\.com$
+RewriteRule   ^(.*)    /home/<strong>%1</strong>/www$1</pre>
+</dd>
+
+<dt>Discussion</dt>
+    <dd>
+
+    <div class="warning">You will need to take care of the DNS
+    resolution - Apache does
+    not handle name resolution. You'll need either to create CNAME
+    records for each hostname, or a DNS wildcard record. Creating DNS
+    records is beyond the scope of this document.</div>
+
+<p>The internal <code>tolower</code> RewriteMap directive is used to
+ensure that the hostnames being used are all lowercase, so that there is
+no ambiguity in the directory structure which must be created.</p>
+
+<p>Parentheses used in a <code class="directive"><a href="../mod/mod_rewrite.html#rewritecond">RewriteCond</a></code> are captured into the
+backreferences <code>%1</code>, <code>%2</code>, etc, while parentheses
+used in <code class="directive"><a href="../mod/mod_rewrite.html#rewriterule">RewriteRule</a></code> are
+captured into the backreferences <code>$1</code>, <code>$2</code>,
+etc.</p>
+
+<p>The first <code>RewriteCond</code> checks to see if the hostname
+starts with <code>www.</code>, and if it does, the rewriting is
+skipped.</p>
+
+<p>
+As with many techniques discussed in this document, <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> really
+isn't the best way to accomplish this task. You should, instead,
+consider using <code class="module"><a href="../mod/mod_vhost_alias.html">mod_vhost_alias</a></code> instead, as it will much
+more gracefully handle anything beyond serving static files, such as any
+dynamic content, and Alias resolution.
+</p>
+    </dd>
+  </dl>
+
+</div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="simple.rewrite">Dynamic
+    Virtual Hosts Using <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> <a title="Permanent link" href="#simple.rewrite" class="permalink">&para;</a></h2>
+
+    <p>This extract from <code>httpd.conf</code> does the same
+    thing as <a href="#per-hostname">the first example</a>. The first
+    half is very similar to the corresponding part above, except for
+    some changes, required for backward compatibility and to make the
+    <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> part work properly; the second half
+    configures <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> to do the actual work.</p>
+
+    <p>Because <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> runs before other URI translation
+    modules (e.g., <code class="module"><a href="../mod/mod_alias.html">mod_alias</a></code>), <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> must
+    be told to explicitly ignore any URLs that would have been handled
+    by those modules. And, because these rules would otherwise bypass
+    any <code>ScriptAlias</code> directives, we must have
+    <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code> explicitly enact those mappings.</p>
+
+<pre class="prettyprint lang-config"># get the server name from the Host: header
+UseCanonicalName Off
+
+# splittable logs
+LogFormat "%{Host}i %h %l %u %t \"%r\" %s %b" vcommon
+CustomLog "logs/access_log" vcommon
+
+&lt;Directory "/www/hosts"&gt;
+    # ExecCGI is needed here because we can't force
+    # CGI execution in the way that ScriptAlias does
+    Options FollowSymLinks ExecCGI
+&lt;/Directory&gt;
+
+RewriteEngine On
+
+# a ServerName derived from a Host: header may be any case at all
+RewriteMap  lowercase  "int:tolower"
+
+## deal with normal documents first:
+# allow Alias /icons/ to work - repeat for other aliases
+RewriteCond  "%{REQUEST_URI}"  "!^/icons/"
+# allow CGIs to work
+RewriteCond  "%{REQUEST_URI}"  "!^/cgi-bin/"
+# do the magic
+RewriteRule  "^/(.*)$"         "/www/hosts/${lowercase:%{SERVER_NAME}}/docs/$1"
+
+## and now deal with CGIs - we have to force a handler
+RewriteCond  "%{REQUEST_URI}"  "^/cgi-bin/"
+RewriteRule  "^/(.*)$"         "/www/hosts/${lowercase:%{SERVER_NAME}}/cgi-bin/$1"  [H=cgi-script]</pre>
+
+
+</div><div class="top"><a href="#page-header"><img alt="top" src="../images/up.gif"></a></div>
+<div class="section">
+<h2 id="xtra-conf">Using a Separate Virtual Host Configuration File <a title="Permanent link" href="#xtra-conf" class="permalink">&para;</a></h2>
+
+    <p>This arrangement uses more advanced <code class="module"><a href="../mod/mod_rewrite.html">mod_rewrite</a></code>
+    features to work out the translation from virtual host to document
+    root, from a separate configuration file. This provides more
+    flexibility, but requires more complicated configuration.</p>
+
+    <p>The <code>vhost.map</code> file should look something like
+    this:</p>
+
+<div class="example"><p><code>
+customer-1.example.com  /www/customers/1<br>
+customer-2.example.com  /www/customers/2<br>
+# ...<br>
+customer-N.example.com  /www/customers/N<br>
+</code></p></div>
+
+    <p>The <code>httpd.conf</code> should contain the following:</p>
+
+<pre class="prettyprint lang-config">RewriteEngine on
+
+RewriteMap   lowercase  "int:tolower"
+
+# define the map file
+RewriteMap   vhost      "txt:/www/conf/vhost.map"
+
+# deal with aliases as above
+RewriteCond  "%{REQUEST_URI}"               "!^/icons/"
+RewriteCond  "%{REQUEST_URI}"               "!^/cgi-bin/"
+RewriteCond  "${lowercase:%{SERVER_NAME}}"  "^(.+)$"
+# this does the file-based remap
+RewriteCond  "${vhost:%1}"                  "^(/.*)$"
+RewriteRule  "^/(.*)$"                      "%1/docs/$1"
+
+RewriteCond  "%{REQUEST_URI}"               "^/cgi-bin/"
+RewriteCond  "${lowercase:%{SERVER_NAME}}"  "^(.+)$"
+RewriteCond  "${vhost:%1}"                  "^(/.*)$"
+RewriteRule  "^/cgi-bin/(.*)$"                      "%1/cgi-bin/$1" [H=cgi-script]</pre>
+
+
+</div></div>
+<div class="bottomlang">
+<p><span>Available Languages: </span><a href="../de/rewrite/vhosts.html" hreflang="de" rel="alternate" title="Deutsch">&nbsp;de&nbsp;</a> |
+<a href="../en/rewrite/vhosts.html" title="English">&nbsp;en&nbsp;</a> |
+<a href="../es/rewrite/vhosts.html" hreflang="es" rel="alternate" title="Espa&ntilde;ol">&nbsp;es&nbsp;</a> |
+<a href="../fr/rewrite/vhosts.html" hreflang="fr" rel="alternate" title="Fran&ccedil;ais">&nbsp;fr&nbsp;</a> |
+<a href="../ja/rewrite/vhosts.html" hreflang="ja" rel="alternate" title="Japanese">&nbsp;ja&nbsp;</a> |
+<a href="../ko/rewrite/vhosts.html" hreflang="ko" rel="alternate" title="Korean">&nbsp;ko&nbsp;</a> |
+<a href="../tr/rewrite/vhosts.html" hreflang="tr" rel="alternate" title="T&uuml;rk&ccedil;e">&nbsp;tr&nbsp;</a> |
+<a href="../zh-cn/rewrite/vhosts.html" hreflang="zh-cn" rel="alternate" title="Simplified Chinese">&nbsp;zh-cn&nbsp;</a></p>
+</div><div id="footer">
+<p class="apache">Copyright 2026 The Apache Software Foundation.<br>Licensed under the <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache License, Version 2.0</a>.</p>
+<p class="menu"><a href="../mod/">Modules</a> | <a href="../mod/quickreference.html">Directives</a> | <a href="https://cwiki.apache.org/confluence/display/httpd/FAQ">FAQ</a> | <a href="../glossary.html">Glossary</a> | <a href="../sitemap.html">Sitemap</a> | <a href="https://bz.apache.org/bugzilla/enter_bug.cgi?product=Apache%20httpd-2">Report a bug</a></p></div><script><!--//--><![CDATA[//><!--
+if (typeof(prettyPrint) !== 'undefined') {
+    prettyPrint();
+}
+var langToggle = document.querySelector('.lang-toggle');
+var topLang = document.querySelector('.toplang');
+if (langToggle && topLang) {
+    langToggle.addEventListener('click', function() { topLang.classList.toggle('open'); });
+}
+var qv = document.getElementById('quickview');
+if (qv) {
+    document.body.appendChild(qv);
+    var qvBtn = document.createElement('button');
+    qvBtn.className = 'qv-toggle';
+    qvBtn.setAttribute('aria-label', 'Toggle page navigation');
+    qvBtn.innerHTML = '&#9776;';
+    document.body.appendChild(qvBtn);
+    qvBtn.addEventListener('click', function() {
+        var isOpen = qv.classList.toggle('open');
+        if (isOpen) {
+            qv.style.top = window.scrollY + 10 + 'px';
+        }
+    });
+    window.addEventListener('scroll', function() { qv.classList.remove('open'); });
+}
+//--><!]]></script>
+</body></html>

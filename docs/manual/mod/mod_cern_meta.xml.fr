@@ -1,0 +1,129 @@
+<?xml version="1.0"?>
+<!DOCTYPE modulesynopsis SYSTEM "../style/modulesynopsis.dtd">
+<?xml-stylesheet type="text/xsl" href="../style/manual.fr.xsl"?>
+<!-- English Revision: 1936367 -->
+<!-- French translation : Lucien GENTIS -->
+<!-- Reviewed by : Vincent Deffontaines -->
+
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<modulesynopsis metafile="mod_cern_meta.xml.meta">
+
+<name>mod_cern_meta</name>
+<description>La sémantique des métafichiers du serveur httpd du
+CERN</description>
+<status>Obsolète</status>
+<sourcefile>mod_cern_meta.c</sourcefile>
+<identifier>cern_meta_module</identifier>
+
+<summary>
+    <p>Il s'agit d'une émulation de la sémantique des métafichiers du
+    serveur httpd du CERN. Les métafichiers sont des en-têtes HTTP
+    qui peuvent s'ajouter au jeu d'en-têtes habituels pour chaque
+    fichier accédé. Ils ressemblent beaucoup aux fichiers .asis
+    d'Apache, et permettent d'influencer de manière rudimentaire
+    l'en-tête Expires:, ainsi que d'autres curiosités. Il existe de
+    nombreuses méthodes pour gérer les métainformations, mais le choix
+    s'est porté sur celle-ci car il existe déjà un grand nombre
+    d'utilisateurs du CERN qui peuvent exploiter ce module.</p>
+
+    <p>Pour plus d'information, voir le document sur la <a
+    href="https://www.w3.org/Daemon/User/Config/General.html#MetaDir"
+    >sémantique des métafichiers du CERN</a>.</p>
+</summary>
+
+<seealso><module>mod_headers</module></seealso>
+<seealso><module>mod_asis</module></seealso>
+
+<directivesynopsis>
+<name>MetaFiles</name>
+<description>Active le traitement des métafichiers du CERN</description>
+<syntax>MetaFiles on|off</syntax>
+<default>MetaFiles off</default>
+<contextlist><context>server config</context>
+<context>virtual host</context>
+<context>directory</context>
+<context>.htaccess</context></contextlist>
+<override>Indexes</override>
+
+<usage>
+    <p>Active ou désactive le traitement des métafichiers pour certains
+    répertoires.</p>
+</usage>
+</directivesynopsis>
+
+<directivesynopsis>
+<name>MetaDir</name>
+<description>Le nom du répertoire où trouver les fichiers de
+métainformations dans le style du CERN</description>
+<syntax>MetaDir <var>répertoire</var></syntax>
+<default>MetaDir .web</default>
+<contextlist><context>server config</context>
+<context>virtual host</context>
+<context>directory</context>
+<context>.htaccess</context></contextlist>
+<override>Indexes</override>
+
+<usage>
+    <p>Spécifie le nom du répertoire dans lequel Apache pourra trouver
+    les fichiers de métainformations. Ce répertoire est en général un
+    sous-répertoire 'caché' du répertoire qui contient le fichier à
+    accéder. Définissez cette directive à "<code>.</code>" pour
+    rechercher les métafichiers dans le même répertoire que le fichier à
+    accéder :</p>
+
+    <highlight language="config">MetaDir .</highlight>
+
+    <p>Ou, pour rechercher dans un sous-répertoire du répertoire
+    contenant le fichier à accéder :</p>
+
+    <highlight language="config">MetaDir .meta</highlight>
+</usage>
+</directivesynopsis>
+
+<directivesynopsis>
+<name>MetaSuffix</name>
+<description>Suffixe du fichier contenant les métainformations dans le
+style du CERN</description>
+<syntax>MetaSuffix <var>suffixe</var></syntax>
+<default>MetaSuffix .meta</default>
+<contextlist><context>server config</context>
+<context>virtual host</context>
+<context>directory</context>
+<context>.htaccess</context></contextlist>
+<override>Indexes</override>
+
+<usage>
+    <p>Spécifie le suffixe du fichier contenant les métainformations.
+    Par exemple, si on conserve les valeurs par défaut des deux
+    directives précédentes, une requête pour
+    <code>DOCUMENT_ROOT/un-rep/index.html</code> provoquera la recherche
+    du métafichier
+    <code>DOCUMENT_ROOT/un-rep/.web/index.html.meta</code>, et utilisera
+    son contenu pour générer les informations quant aux en-têtes MIME
+    additionnels.</p>
+
+    <example><title>Exemple :</title>
+    <highlight language="config">
+      MetaSuffix .meta
+    </highlight>
+    </example>
+</usage>
+</directivesynopsis>
+
+</modulesynopsis>

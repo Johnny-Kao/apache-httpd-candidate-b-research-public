@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE language SYSTEM "../lang.dtd">
+<!-- English Revision: 1919560 -->
+<!-- Portuguese(BR) translation: leonardolara --><!-- Reviewed by: leonardolara -->
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<language id="pt-br">
+    <name>Portuguese</name>
+    <charset>UTF-8</charset>
+    <source-ext>.xml.pt-br</source-ext>
+    <target-ext>.html.pt-br.utf8</target-ext>
+
+    <!-- <chm>
+        <lang>0x416 Portuguese (Brazil)</lang>
+        <toc-font>,8,0</toc-font>
+        <charset>windows-1252</charset>
+        <settings>Portuguese (Brazil)</settings>
+    </chm> -->
+
+    <!-- only English ATM <man>
+        <charset>ISO-8859-1</charset>
+    </man> -->
+
+    <!-- Some strings might be used in other contexts, than stated in the -->
+    <!-- comments...                                                      -->
+    <messages>
+        <!-- language link titles -->
+        <message id="nativename">Português (Brasil)</message>
+
+        <!-- Used for the moduleindex -->
+        <message id="corefeatures">Principais Funcionalidades e Módulos de
+            Multi-Processos (MPM)</message>
+        <message id="othermodules">Outros Módulos</message>
+        <message id="obsoletemodules">Módulos Obsoletos</message>
+
+        <!-- Used for the modulesynopsis and sitemap -->
+        <message id="obsoleteapachemodule">Módulo Obsoleto do Apache</message>
+        <message id="apachemodule">Módulo do Apache</message>
+        <message id="apachecore">Funcionalidades do Núcleo do Apache</message>
+        <message id="apachempmcommon">Diretrizes Comuns do Apache MPM</message>
+        <message id="apachempm">Apache MPM</message>
+
+        <!-- Used in description box for modulesynopsis -->
+        <message id="description">Descrição</message>
+        <message id="seealso">Veja também</message>
+        <message id="topics">Tópicos</message>
+        <message id="status">Status</message>
+        <message id="moduleidentifier">Identificador de Módulo</message>
+        <message id="sourcefile">Arquivo Fonte</message>
+        <message id="compatibility">Compatibilidade</message>
+        <message id="before-since">Disponível no Servidor Apache HTTP </message>
+        <message id="after-since"> e posteriores.</message>
+
+        <!-- Used in manualpage -->
+        <message id="relatedmodules">Módulos Relacionados</message>
+        <message id="relateddirectives">Diretrizes Relacionadas</message>
+        <message id="lowercase">abcdefghijklmnopqrstuvwxyz</message>
+        <message id="uppercase">ABCDEFGHIJKLMNOPQRSTUVWXYZ</message>
+        <message id="name-section">NOME</message>
+        <message id="hyphenation"></message>
+        <message id="foundabug">Lista de verificação de problemas</message>
+        <message id="httpdchangelog">registro de alterações do httpd</message>
+        <message id="httpdknownissues">Problemas conhecidos</message>
+        <message id="httpdreportabug">Relate um problema</message>
+        <message id="permalink">Link permanente</message>
+
+        <!-- Used in description box for directives -->
+        <message id="syntax">Sintaxe</message>
+        <message id="default">Padrão</message>
+        <message id="context">Contexto</message>
+        <message id="override">Sobrescreve</message>
+        <message id="status">Status</message>
+        <message id="module">Módulo</message>
+
+        <!-- Status descriptions -->
+        <message id="base" letter="B">Base</message>
+        <message id="mpm" letter="M">MPM</message>
+        <message id="core" letter="C">Núcleo</message>
+        <message id="extension" letter="E">Extensão</message>
+        <message id="experimental" letter="X">Experimental</message>
+        <message id="external" letter="T">Externo</message>
+
+        <message id="deprecated" letter="D">Obsoleto</message>
+
+        <!-- Used in directive context lists -->
+        <message id="serverconfig" letter="s">configuração do servidor</message>
+        <message id="virtualhost" letter="v">host virtual</message>
+        <message id="directory" letter="d">diretório</message>
+        <message id="htaccess" letter="h">.htaccess</message>
+        <message id="proxy" letter="p">seção de proxy</message>
+
+        <!-- Used for directive lists -->
+        <message id="directives">Diretivas</message>
+        <!-- the optional attribute replace-space-with takes a string.
+             if present, the space between <directive name> and 'Directive'
+             in directivesynopsis headings will be replaced by the given string.
+             (see de.xml for an example) -->
+        <!-- the optional attribute before-name takes a string.
+             if "yes", the 'Directive' word is place before the name instead of
+             being placed behind. See fr.xml for an example. -->
+        <message id="directive">Diretiva</message>
+        <message id="nodirectives">Este módulo não fornece nenhuma
+            diretiva.</message>
+
+        <!-- Used in summaries -->
+        <message id="summary">Sumário</message>
+
+        <!-- Used for glossary link titles -->
+        <message id="glossarylink">ver glossário</message>
+
+        <!-- Used in headers and footers -->
+        <message id="apachetitle">- Servidor HTTP Apache</message>
+        <message id="apachehttpserver">Servidor HTTP Apache Versão
+            &httpd.major;.&httpd.minor;</message>
+        <message id="apachedocalt">[DOCUMENTAÇÃO APACHE]</message>
+        <message id="search">Busca Google</message> <!-- search button -->
+        <message id="index">Índice</message> <!-- deprecated -->
+        <message id="home">Início</message> <!-- deprecated -->
+        <message id="comments">Comentários</message>
+
+        <!-- breadcrumb links -->
+        <message id="apache">Apache</message>
+        <message id="http-server">Servidor HTTP</message>
+        <message id="documentation">Documentação</message>
+        <message id="version">Versão &httpd.major;.&httpd.minor;</message>
+
+        <!-- super menu -->
+        <message id="modules">Módulos</message>
+        <message id="faq">Perguntas Frequentes</message>
+        <message id="glossary">Glossário</message>
+        <message id="sitemap">Mapa do Site</message>
+
+        <!-- footer line -->
+        <message id="before-license">Licenciado sob a</message>
+        <message id="after-license"></message>
+        <message id="langavail">Línguas Disponíveis</message>
+
+        <!-- not up to date -->
+        <message id="outofdate">Esta tradução pode estar desatualizada.
+        Verifique a versão em inglês para alterações recentes.</message>
+        <!-- directive not translated yet -->
+        <message id="nottranslated">A documentação para esta diretiva ainda
+            não foi traduzida. Por favor consulte a versão
+            em inglês.</message>
+
+        <!-- retirement -->
+        <message id="retired.headline">Favor observar</message>
+        <message id="retired.description">
+            <p>Este documento refere-se à versão <strong>2.0</strong> do Apache httpd, que <strong>não é mais mantida</strong>. Atualize e refira-se à versão atual do httpd, documentada em:</p>
+        </message>
+        <message id="retired.current">Versão atual da documentação do Servidor HTTP Apache</message>
+        <message id="retired.document">Siga <link>este atalho</link> para a versão atual deste documento.</message>
+
+    </messages>
+</language>
