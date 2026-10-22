@@ -94,6 +94,13 @@ jobs:
               --httpd "$install_dir/bin/httpd" \
               --server-root "$install_dir" \
               --backend "$RUNNER_TEMP/go-connect-fixture-$ref"
+            echo "=== Go net/http late ResponseWriter pattern: $ref ==="
+            go build -o "$RUNNER_TEMP/go-late-write-fixture-$ref" \
+              research/go_late_write_fixture.go
+            python3 research/test_go_late_write_apache.py \
+              --httpd "$install_dir/bin/httpd" \
+              --server-root "$install_dir" \
+              --backend "$RUNNER_TEMP/go-late-write-fixture-$ref"
             echo "=== Candidate B matrix: $ref ==="
             python3 research/test_candidate_b.py \
               --httpd "$install_dir/bin/httpd" \
