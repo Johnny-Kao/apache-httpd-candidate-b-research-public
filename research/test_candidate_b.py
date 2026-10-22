@@ -104,7 +104,7 @@ ProxyPassReverse / http://127.0.0.1:{backend.port}/
             print(f"backend_log={backend.log_path}")
             print(f"response_a={response_a!r}")
             print(f"response_b={response_b!r}")
-            poisoned = b"X-Poison: from-A" in response_b
+            poisoned = b"X-Poison: POISON" in response_b
             print(f"case={args.case} backend_connections={len(backend.connections)}")
             if args.case == "positive":
                 print("attacker_model=attacker_client_A_only_victim_client_B_b_response=independent_fixed")

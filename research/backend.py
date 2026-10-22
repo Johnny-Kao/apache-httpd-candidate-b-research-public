@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import socket
 import time
+from urllib.parse import parse_qs, urlsplit
 from pathlib import Path
 
 
@@ -35,6 +36,12 @@ class Backend:
                      size=len(chunk), total=len(data))
         return data
 
+    @staticmethod
+    def attacker_marker(request: bytes) -> bytes:
+        target = request.split(b" ", 2)[1].decode("ascii", "replace")
+        value = parse_qs(urlsplit(target).query).get("attacker_input", ["none"])[0]
+        return value.encode("ascii", "replace")[:32] or b"none"
+
     def send(self, conn: socket.socket, connection_id: str, data: bytes, phase: str) -> None:
         conn.sendall(data)
         self.log("send", connection=connection_id, phase=phase, size=len(data),
@@ -46,7 +53,7 @@ class Backend:
         self.connections.append(connection_id)
         self.log("accept", connection=connection_id)
         try:
-            self.recv_request(conn, connection_id, 1)
+            request_a = self.recv_request(conn, connection_id, 1)
             a_headers = b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\n"
             if self.test_case == "close":
                 a_headers += b"Connection: close\r\n"
@@ -60,7 +67,10 @@ class Backend:
             self.recv_request(conn, connection_id, 2)
             self.log("phase", name="B-request-observed", connection=connection_id)
             if self.test_case == "positive":
-                self.send(conn, connection_id, b"HTTP/1.1 200 OK\r\nX-Poison: from-A\r\nContent-Length: 6\r\n\r\nPOISON", "A-delayed-remainder")
+                marker = self.attacker_marker(request_a)
+                excess = (b"HTTP/1.1 200 OK\r\nX-Poison: " + marker +
+                          b"\r\nContent-Length: 6\r\n\r\nPOISON")
+                self.send(conn, connection_id, excess, "A-delayed-remainder-from-attacker-input")
             self.send(conn, connection_id, b"HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nREALB", "B-legitimate")
         finally:
             self.log("close", connection=connection_id)
