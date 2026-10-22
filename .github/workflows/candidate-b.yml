@@ -45,5 +45,6 @@ jobs:
             python3 research/test_candidate_b.py \
               --httpd "$install_dir/bin/httpd" \
               --server-root "$install_dir" \
-              --case all
+              --case all \
+              --iterations 100
           done

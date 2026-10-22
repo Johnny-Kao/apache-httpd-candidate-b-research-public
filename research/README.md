@@ -3,9 +3,11 @@
 This directory contains a localhost-only harness for the delayed backend
 remainder hypothesis documented in `apache_candidate_B_delayed_backend_remainder.md`.
 
-The harness is deliberately a mechanics test. A result from a fully controlled
-fake backend is not, by itself, a security finding. Any positive result must
-also prove same-socket reuse, repeatability, and a narrower attacker capability.
+The harness is deliberately a mechanics test. The positive case models an
+attacker who controls only response A; response B is a fixed independent
+server response. A result from a fully controlled fake backend is not, by
+itself, a security finding. Any positive result must also prove same-socket
+reuse, repeatability, and a real deployment boundary.
 
 ## Local run
 

@@ -33,16 +33,22 @@ def main() -> int:
     parser.add_argument("--httpd", required=True, type=Path)
     parser.add_argument("--server-root", required=True, type=Path)
     parser.add_argument("--case", choices=["all", "positive", "clean", "close", "nokeepalive"], required=True)
+    parser.add_argument("--iterations", type=int, default=1)
     args = parser.parse_args()
     if not args.httpd.is_file():
         raise SystemExit(f"httpd not found: {args.httpd}")
 
     if args.case == "all":
-        for test_case in ("positive", "clean", "close", "nokeepalive"):
+        for _ in range(args.iterations):
+            test_case = "positive"
             command = [sys.executable, __file__, "--httpd", str(args.httpd),
                        "--server-root", str(args.server_root), "--case", test_case]
             subprocess.run(command, check=True)
-        print("candidate_b_matrix=passed")
+        for test_case in ("clean", "close", "nokeepalive"):
+            command = [sys.executable, __file__, "--httpd", str(args.httpd),
+                       "--server-root", str(args.server_root), "--case", test_case]
+            subprocess.run(command, check=True)
+        print(f"candidate_b_matrix=passed positive_iterations={args.iterations}")
         return 0
 
     with tempfile.TemporaryDirectory(prefix="candidate-b-") as tmp:
@@ -95,6 +101,8 @@ ProxyPassReverse / http://127.0.0.1:{backend.port}/
             print(f"response_b={response_b!r}")
             poisoned = b"X-Poison: from-A" in response_b
             print(f"case={args.case} backend_connections={len(backend.connections)}")
+            if args.case == "positive":
+                print("attacker_model=A_only_b_response=independent_fixed")
             print("candidate_b_mechanics=observed" if poisoned else "candidate_b_mechanics=not_observed")
             if args.case == "positive" and not poisoned:
                 raise AssertionError("positive case did not cross response boundary")
