@@ -102,8 +102,7 @@ jobs:
               --server-root "$install_dir" \
               --backend "$RUNNER_TEMP/go-late-write-fixture-$ref"
             echo "=== gin-contrib/timeout v0.0.1 real timeout pattern: $ref ==="
-            go -C "$GITHUB_WORKSPACE/research/gin_timeout_fixture" mod tidy
-            go -C "$GITHUB_WORKSPACE/research/gin_timeout_fixture" build \
+            GOFLAGS=-mod=mod go -C "$GITHUB_WORKSPACE/research/gin_timeout_fixture" build \
               -o "$RUNNER_TEMP/gin-timeout-fixture-$ref" .
             python3 research/test_gin_timeout_apache.py \
               --httpd "$install_dir/bin/httpd" \
