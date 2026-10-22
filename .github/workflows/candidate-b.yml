@@ -25,7 +25,27 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y autoconf automake build-essential libapr1-dev \
             libaprutil1-dev libpcre2-dev libnghttp2-dev libtool libtool-bin \
-            pkg-config
+            pkg-config php-cli
+
+      - name: Reproduce real-world Collabora response-boundary bug
+        run: |
+          mkdir -p "$RUNNER_TEMP/collabora-length-test"
+          curl --fail --location \
+            https://raw.githubusercontent.com/CollaboraOnline/richdocumentscode/refs/pull/357/head/proxy.php \
+            --output "$RUNNER_TEMP/collabora-length-test/proxy.php"
+          curl --fail --location \
+            https://raw.githubusercontent.com/CollaboraOnline/richdocumentscode/refs/pull/357/head/tests/proxy-response-length.php \
+            --output "$RUNNER_TEMP/collabora-length-test/proxy-response-length.php"
+          set +e
+          php "$RUNNER_TEMP/collabora-length-test/proxy-response-length.php" \
+            > "$RUNNER_TEMP/collabora-length-test/output.log" 2>&1
+          status=$?
+          set -e
+          cat "$RUNNER_TEMP/collabora-length-test/output.log"
+          test "$status" -ne 0
+          grep -q "followed by another response" \
+            "$RUNNER_TEMP/collabora-length-test/output.log"
+          echo "collabora_unpatched_proxy_extra_response=observed"
 
       - name: Build and test both upstream versions
         run: |
