@@ -40,6 +40,9 @@ jobs:
 
       - name: Run synchronized localhost experiment
         run: |
-          python3 research/test_candidate_b.py \
-            --httpd "$RUNNER_TEMP/apache-install/bin/httpd" \
-            --server-root "$RUNNER_TEMP/apache-install"
+          for case in positive clean close nokeepalive; do
+            python3 research/test_candidate_b.py \
+              --httpd "$RUNNER_TEMP/apache-install/bin/httpd" \
+              --server-root "$RUNNER_TEMP/apache-install" \
+              --case "$case"
+          done

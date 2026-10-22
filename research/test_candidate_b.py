@@ -31,13 +31,14 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--httpd", required=True, type=Path)
     parser.add_argument("--server-root", required=True, type=Path)
+    parser.add_argument("--case", choices=["positive", "clean", "close", "nokeepalive"], required=True)
     args = parser.parse_args()
     if not args.httpd.is_file():
         raise SystemExit(f"httpd not found: {args.httpd}")
 
     with tempfile.TemporaryDirectory(prefix="candidate-b-") as tmp:
         root = Path(tmp)
-        backend = Backend(root / "backend.log")
+        backend = Backend(root / "backend.log", args.case)
         config = root / "httpd.conf"
         config.write_text(f"""\
 ServerRoot \"{args.server_root}\"
@@ -46,11 +47,13 @@ PidFile \"{root / 'httpd.pid'}\"
 ErrorLog \"{root / 'error.log'}\"
 LogLevel proxy_http:trace2
 LoadModule unixd_module modules/mod_unixd.so
+LoadModule env_module modules/mod_env.so
 LoadModule authz_core_module modules/mod_authz_core.so
 LoadModule proxy_module modules/mod_proxy.so
 LoadModule proxy_http_module modules/mod_proxy_http.so
 ProxyPass / http://127.0.0.1:{backend.port}/
 ProxyPassReverse / http://127.0.0.1:{backend.port}/
+{"SetEnv proxy-nokeepalive 1" if args.case == "nokeepalive" else ""}
 """)
         thread = threading.Thread(target=backend.run, daemon=True)
         thread.start()
@@ -81,8 +84,17 @@ ProxyPassReverse / http://127.0.0.1:{backend.port}/
             print(f"backend_log={backend.log_path}")
             print(f"response_a={response_a!r}")
             print(f"response_b={response_b!r}")
-            print("candidate_b_mechanics=observed" if b"X-Poison: from-A" in response_b
-                  else "candidate_b_mechanics=not_observed")
+            poisoned = b"X-Poison: from-A" in response_b
+            print(f"case={args.case} backend_connections={len(backend.connections)}")
+            print("candidate_b_mechanics=observed" if poisoned else "candidate_b_mechanics=not_observed")
+            if args.case == "positive" and not poisoned:
+                raise AssertionError("positive case did not cross response boundary")
+            if args.case != "positive" and (poisoned or not response_b.endswith(b"REALB")):
+                raise AssertionError(f"control case contaminated: {response_b!r}")
+            if args.case in {"close", "nokeepalive"} and len(backend.connections) < 2:
+                raise AssertionError("control did not force a new backend connection")
+            if args.case in {"positive", "clean"} and len(backend.connections) != 1:
+                raise AssertionError("pooled case did not reuse one backend connection")
             return 0
         finally:
             proxy.terminate()
