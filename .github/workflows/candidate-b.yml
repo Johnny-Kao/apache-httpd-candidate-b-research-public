@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: candidate-b-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     name: Apache 2.4.69 and trunk
