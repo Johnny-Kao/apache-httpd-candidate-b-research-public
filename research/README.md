@@ -25,3 +25,30 @@ python3 research/test_candidate_b.py \
 The backend and proxy bind only to `127.0.0.1`. The test records raw client
 bytes and backend events under a temporary directory and fails if request B is
 served over a different backend connection.
+
+## GitHub-only trigger validation
+
+The public workflow runs the harness on Apache 2.4.69 and current trunk. The
+successful run `39871258803` is the current evidence snapshot:
+
+- The synthetic Candidate B backend reproduced the cross-tenant mechanics on
+  both Apache versions, with 100/100 positive iterations and one reused
+  backend connection.
+- The unpatched Collabora `proxy.php` response-length regression produced real
+  extra response bytes, but the full Apache/PHP path returned independent A/B
+  responses.
+- The published LuminalShine #194 two-response pattern was tested with delays
+  from 0 through 100 ms. Apache returned 502/503 or closed the path; B never
+  received the A-side `404` response.
+- The published cpp-httplib GET-body desynchronization pattern reached the
+  backend only as `/index.html` and `/victim`; Apache did not forward the GET
+  body as a second backend request in this reverse-proxy path.
+- The Go `net/http` CONNECT and late-`ResponseWriter` patterns likewise did
+  not cross the tenant boundary. Apache rejected CONNECT with 400, and the
+  late-write test returned `VICTIM-OWN` to B.
+
+These are useful negative controls, not proof that the synthetic mechanism is
+impossible. The current conclusion is therefore: Apache mechanics are
+observed, but no ordinary application-triggered A-only response remainder has
+yet been shown to reach B. That missing causal link is required before calling
+this an Apache security finding.
