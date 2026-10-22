@@ -76,6 +76,17 @@ jobs:
             python3 research/test_northebridge_apache.py \
               --httpd "$install_dir/bin/httpd" \
               --server-root "$install_dir"
+            echo "=== cpp-httplib published GET-body desync pattern: $ref ==="
+            cpp_dir="$RUNNER_TEMP/cpp-httplib-$ref"
+            git clone --depth 1 --branch v0.38.0 \
+              https://github.com/yhirose/cpp-httplib.git "$cpp_dir"
+            g++ -std=c++11 -O2 -pthread \
+              -I "$cpp_dir" research/cpp_httplib_fixture.cc \
+              -o "$RUNNER_TEMP/cpp-httplib-fixture-$ref"
+            python3 research/test_cpp_httplib_apache.py \
+              --httpd "$install_dir/bin/httpd" \
+              --server-root "$install_dir" \
+              --backend "$RUNNER_TEMP/cpp-httplib-fixture-$ref"
             echo "=== Candidate B matrix: $ref ==="
             python3 research/test_candidate_b.py \
               --httpd "$install_dir/bin/httpd" \
