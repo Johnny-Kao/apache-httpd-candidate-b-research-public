@@ -10,12 +10,8 @@ permissions:
 
 jobs:
   test:
-    name: Apache ${{ matrix.ref }}
+    name: Apache 2.4.69 and trunk
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        ref: ["2.4.69", "trunk"]
     steps:
       - name: Check out research repository
         uses: actions/checkout@v4
@@ -27,20 +23,23 @@ jobs:
             libaprutil1-dev libpcre2-dev libnghttp2-dev libtool libtool-bin \
             pkg-config
 
-      - name: Build upstream Apache ${{ matrix.ref }}
+      - name: Build and test both upstream versions
         run: |
-          git clone --depth 1 --branch "${{ matrix.ref }}" \
-            https://github.com/apache/httpd.git "$RUNNER_TEMP/httpd"
-          cd "$RUNNER_TEMP/httpd"
-          ./buildconf --with-apr=/usr/bin/apr-1-config
-          ./configure --prefix="$RUNNER_TEMP/apache-install" \
-            --enable-proxy --enable-proxy-http --enable-mods-shared=most
-          make -j2
-          make install
-
-      - name: Run synchronized localhost experiment
-        run: |
-          python3 research/test_candidate_b.py \
-            --httpd "$RUNNER_TEMP/apache-install/bin/httpd" \
-            --server-root "$RUNNER_TEMP/apache-install" \
-            --case all
+          for ref in 2.4.69 trunk; do
+            source_dir="$RUNNER_TEMP/httpd-$ref"
+            install_dir="$RUNNER_TEMP/apache-install-$ref"
+            git clone --depth 1 --branch "$ref" \
+              https://github.com/apache/httpd.git "$source_dir"
+            cd "$source_dir"
+            ./buildconf --with-apr=/usr/bin/apr-1-config
+            ./configure --prefix="$install_dir" \
+              --enable-proxy --enable-proxy-http --enable-mods-shared=most
+            make -j2
+            make install
+            cd "$GITHUB_WORKSPACE"
+            echo "=== Candidate B matrix: $ref ==="
+            python3 research/test_candidate_b.py \
+              --httpd "$install_dir/bin/httpd" \
+              --server-root "$install_dir" \
+              --case all
+          done
