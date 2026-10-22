@@ -114,8 +114,11 @@ ProxyPassReverse / http://127.0.0.1:18081/
             print("collabora_apache_tenant_boundary=observed" if not response_b.endswith(b"OK") else "collabora_apache_tenant_boundary=not_observed")
             if not response_a.endswith(b"OK"):
                 raise AssertionError(f"unexpected A response: {response_a!r}")
-            if response_b.endswith(b"OK"):
-                raise AssertionError("B received its legitimate response; boundary not observed")
+            if not response_b.endswith(b"OK"):
+                raise AssertionError(f"unexpected B response: {response_b!r}")
+            # This is a negative control: the real Collabora proxy path's
+            # immediate extra response does not reproduce Candidate B through
+            # this Apache/PHP chain. Keep that distinction explicit.
             return 0
         finally:
             apache.terminate()
