@@ -46,9 +46,13 @@ successful run `39871258803` is the current evidence snapshot:
 - The Go `net/http` CONNECT and late-`ResponseWriter` patterns likewise did
   not cross the tenant boundary. Apache rejected CONNECT with 400, and the
   late-write test returned `VICTIM-OWN` to B.
+- A new candidate is the old `gin-contrib/timeout` v0.0.1 pattern: a normal
+  request exceeds a timeout, the middleware sends a 408, and the original
+  handler goroutine later writes to the same `ResponseWriter`. The CI fixture
+  is source-equivalent to that published control flow but uses only the Go
+  standard library so dependency resolution cannot hide the wire result.
 
 These are useful negative controls, not proof that the synthetic mechanism is
-impossible. The current conclusion is therefore: Apache mechanics are
-observed, but no ordinary application-triggered A-only response remainder has
-yet been shown to reach B. That missing causal link is required before calling
-this an Apache security finding.
+impossible. The current conclusion remains: Apache mechanics are observed, but
+the source-equivalent timeout candidate still has to demonstrate an A-only
+remainder reaching B before calling this an Apache security finding.
