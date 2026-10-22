@@ -30,6 +30,7 @@ jobs:
       - name: Reproduce real-world Collabora response-boundary bug
         run: |
           mkdir -p "$RUNNER_TEMP/collabora-length-test"
+          mkdir -p "$RUNNER_TEMP/collabora-length-test/tests"
           curl --fail --location \
             https://raw.githubusercontent.com/CollaboraOnline/richdocumentscode/refs/pull/357/head/proxy.php \
             --output "$RUNNER_TEMP/collabora-length-test/proxy.php"
@@ -40,9 +41,9 @@ jobs:
             "$RUNNER_TEMP/collabora-length-test/proxy.php"
           curl --fail --location \
             https://raw.githubusercontent.com/CollaboraOnline/richdocumentscode/refs/pull/357/head/tests/proxy-response-length.php \
-            --output "$RUNNER_TEMP/collabora-length-test/proxy-response-length.php"
+            --output "$RUNNER_TEMP/collabora-length-test/tests/proxy-response-length.php"
           set +e
-          php "$RUNNER_TEMP/collabora-length-test/proxy-response-length.php" \
+          php "$RUNNER_TEMP/collabora-length-test/tests/proxy-response-length.php" \
             > "$RUNNER_TEMP/collabora-length-test/output.log" 2>&1
           status=$?
           set -e
