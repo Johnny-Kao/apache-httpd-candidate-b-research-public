@@ -3,6 +3,7 @@ name: Candidate B localhost test
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
