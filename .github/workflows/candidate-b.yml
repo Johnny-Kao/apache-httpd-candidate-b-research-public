@@ -72,6 +72,10 @@ jobs:
               --httpd "$install_dir/bin/httpd" \
               --server-root "$install_dir" \
               --proxy-php "$RUNNER_TEMP/collabora-length-test/proxy.php"
+            echo "=== LuminalShine published malformed-response pattern: $ref ==="
+            python3 research/test_northebridge_apache.py \
+              --httpd "$install_dir/bin/httpd" \
+              --server-root "$install_dir"
             echo "=== Candidate B matrix: $ref ==="
             python3 research/test_candidate_b.py \
               --httpd "$install_dir/bin/httpd" \
