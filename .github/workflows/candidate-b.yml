@@ -67,6 +67,11 @@ jobs:
             make -j2
             make install
             cd "$GITHUB_WORKSPACE"
+            echo "=== Real Collabora proxy path through Apache: $ref ==="
+            python3 research/test_collabora_apache.py \
+              --httpd "$install_dir/bin/httpd" \
+              --server-root "$install_dir" \
+              --proxy-php "$RUNNER_TEMP/collabora-length-test/proxy.php"
             echo "=== Candidate B matrix: $ref ==="
             python3 research/test_candidate_b.py \
               --httpd "$install_dir/bin/httpd" \
