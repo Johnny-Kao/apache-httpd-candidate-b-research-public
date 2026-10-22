@@ -32,7 +32,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/collabora-length-test"
           mkdir -p "$RUNNER_TEMP/collabora-length-test/tests"
           curl --fail --location \
-            https://raw.githubusercontent.com/CollaboraOnline/richdocumentscode/refs/pull/357/head/proxy.php \
+            https://raw.githubusercontent.com/CollaboraOnline/richdocumentscode/aff40c487bcedecc6a03b69dc999a5c3ab148a04/proxy.php \
             --output "$RUNNER_TEMP/collabora-length-test/proxy.php"
           # The upstream test server binds IPv4 loopback; make PHP's local
           # CODE endpoint deterministic on Ubuntu runners where localhost may
