@@ -22,7 +22,7 @@ jobs:
       - name: Install Apache build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y autoconf build-essential libapr1-dev \
+          sudo apt-get install -y autoconf automake build-essential libapr1-dev \
             libaprutil1-dev libpcre2-dev libnghttp2-dev libtool libtool-bin \
             pkg-config
 
@@ -31,7 +31,7 @@ jobs:
           git clone --depth 1 --branch "${{ matrix.ref }}" \
             https://github.com/apache/httpd.git "$RUNNER_TEMP/httpd"
           cd "$RUNNER_TEMP/httpd"
-          ./buildconf
+          ./buildconf --with-apr=/usr/bin/apr-1-config
           ./configure --prefix="$RUNNER_TEMP/apache-install" \
             --enable-proxy --enable-proxy-http --enable-mods-shared=most
           make -j2
