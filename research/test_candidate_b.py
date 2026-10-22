@@ -7,6 +7,7 @@ import argparse
 import os
 import socket
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -31,10 +32,18 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--httpd", required=True, type=Path)
     parser.add_argument("--server-root", required=True, type=Path)
-    parser.add_argument("--case", choices=["positive", "clean", "close", "nokeepalive"], required=True)
+    parser.add_argument("--case", choices=["all", "positive", "clean", "close", "nokeepalive"], required=True)
     args = parser.parse_args()
     if not args.httpd.is_file():
         raise SystemExit(f"httpd not found: {args.httpd}")
+
+    if args.case == "all":
+        for test_case in ("positive", "clean", "close", "nokeepalive"):
+            command = [sys.executable, __file__, "--httpd", str(args.httpd),
+                       "--server-root", str(args.server_root), "--case", test_case]
+            subprocess.run(command, check=True)
+        print("candidate_b_matrix=passed")
+        return 0
 
     with tempfile.TemporaryDirectory(prefix="candidate-b-") as tmp:
         root = Path(tmp)
