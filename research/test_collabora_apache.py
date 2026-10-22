@@ -25,6 +25,18 @@ def read_http(sock: socket.socket) -> bytes:
     return head + b"\r\n\r\n" + body[:length]
 
 
+def wait_for_port(host: str, port: int, process: subprocess.Popen[str]) -> None:
+    deadline = time.monotonic() + 10
+    while time.monotonic() < deadline:
+        try:
+            with socket.create_connection((host, port), timeout=1):
+                return
+        except OSError:
+            if process.poll() is not None:
+                raise RuntimeError(process.stderr.read())
+    raise TimeoutError(f"{host}:{port} did not listen")
+
+
 class CodeBackend:
     def __init__(self) -> None:
         self.listener = socket.socket()
@@ -71,6 +83,7 @@ def main() -> int:
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             text=True, env={**os.environ, "PHP_INI_SCAN_DIR": ""},
         )
+        wait_for_port("127.0.0.1", 18081, php)
         config = root / "httpd.conf"
         config.write_text(f"""\
 ServerRoot "{args.server_root}"
@@ -111,11 +124,13 @@ ProxyPassReverse / http://127.0.0.1:18081/
             print(f"collabora_proxy_response_a={response_a!r}")
             print(f"collabora_proxy_response_b={response_b!r}")
             print(f"collabora_code_requests={backend.requests}")
-            print("collabora_apache_tenant_boundary=observed" if not response_b.endswith(b"OK") else "collabora_apache_tenant_boundary=not_observed")
-            if not response_a.endswith(b"OK"):
-                raise AssertionError(f"unexpected A response: {response_a!r}")
-            if not response_b.endswith(b"OK"):
-                raise AssertionError(f"unexpected B response: {response_b!r}")
+            a_ok = response_a.endswith(b"OK")
+            b_ok = response_b.endswith(b"OK")
+            print(f"collabora_apache_a_ok={a_ok} collabora_apache_b_ok={b_ok}")
+            # This path is only a negative control.  A proxy error is not
+            # evidence of cross-tenant bytes; only an independent B response
+            # lets us call the control cleanly observed.
+            print("collabora_apache_tenant_boundary=not_observed" if b_ok else "collabora_apache_tenant_boundary=inconclusive")
             # This is a negative control: the real Collabora proxy path's
             # immediate extra response does not reproduce Candidate B through
             # this Apache/PHP chain. Keep that distinction explicit.

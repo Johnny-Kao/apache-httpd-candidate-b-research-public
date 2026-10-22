@@ -126,7 +126,9 @@ ProxyPassReverse / http://127.0.0.1:{backend.port}/
                 victim.sendall(b"GET /tenant-b/normal HTTP/1.1\r\nHost: tenant-b\r\nConnection: close\r\n\r\n")
                 response_b = read_response(victim)
             thread.join(timeout=2)
-            contaminated = not response_b.endswith(b"REALB")
+            # A 502/connection-close is not cross-tenant data exposure.  Count
+            # only the published A-side stray response being delivered as B.
+            contaminated = b"HTTP/1.1 404 NOT FOUND" in response_b and BODY in response_b
             print(f"luminalshine_delay_ms={delay_ms} backend_connections={backend.connections} b_contaminated={contaminated}")
             print(f"luminalshine_response_b={response_b!r}")
             if not response_a.endswith(BODY):
