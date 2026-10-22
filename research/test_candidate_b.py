@@ -45,7 +45,6 @@ Listen 127.0.0.1:18080
 PidFile \"{root / 'httpd.pid'}\"
 ErrorLog \"{root / 'error.log'}\"
 LogLevel proxy_http:trace2
-LoadModule mpm_event_module modules/mod_mpm_event.so
 LoadModule unixd_module modules/mod_unixd.so
 LoadModule authz_core_module modules/mod_authz_core.so
 LoadModule proxy_module modules/mod_proxy.so
