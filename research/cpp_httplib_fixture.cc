@@ -23,6 +23,11 @@ int main(int argc, char **argv) {
   server.Get("/victim", [](const httplib::Request &, httplib::Response &response) {
     response.set_content("VICTIM-OWN", "text/plain");
   });
+  server.set_logger([](const httplib::Request &request,
+                       const httplib::Response &response) {
+    std::cerr << "cpp_httplib_request=" << request.method << " " << request.path
+              << " status=" << response.status << std::endl;
+  });
   if (!server.set_mount_point("/", argv[2])) {
     std::cerr << "failed to mount root\n";
     return 1;

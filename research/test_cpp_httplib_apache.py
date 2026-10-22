@@ -95,8 +95,12 @@ ProxyPassReverse / http://127.0.0.1:{backend_port}/
                 )
                 response_b = read_response(victim)
             contaminated = b"ATTACKER-ATTACKER_ONLY" in response_b
+            backend.terminate()
+            backend.wait(timeout=5)
+            backend_log = backend.stderr.read()
             print(f"cpp_httplib_response_a={response_a!r}")
             print(f"cpp_httplib_response_b={response_b!r}")
+            print(f"cpp_httplib_backend_log={backend_log!r}")
             print(f"cpp_httplib_apache_boundary={'observed' if contaminated else 'not_observed'}")
             return contaminated
         finally:
