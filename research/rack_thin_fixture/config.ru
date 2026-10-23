@@ -71,7 +71,9 @@ end
 app = lambda do |env|
   if env["PATH_INFO"] == "/victim"
     probe_log(env, "B")
-    body = if ENV["RACK_THIN_IMPACT"] == "1"
+    body = if ENV["RACK_THIN_VICTIM_MODE"] == "json"
+      '{"tenant":"B","allowed":false,"secret":"B_SYNTHETIC_SECRET"}'
+    elsif ENV["RACK_THIN_IMPACT"] == "1"
       # A normal small HTML page is enough to test whether attacker bytes can
       # enter a victim document; keeping it short also makes the delayed A
       # tail large enough to cover the complete victim body.
@@ -79,7 +81,8 @@ app = lambda do |env|
     else
       "VICTIM-OWN"
     end
-    [200, {"content-type" => ENV["RACK_THIN_IMPACT"] == "1" ? "text/html" : "text/plain",
+    [200, {"content-type" => ENV["RACK_THIN_VICTIM_MODE"] == "json" ? "application/json" :
+           (ENV["RACK_THIN_IMPACT"] == "1" ? "text/html" : "text/plain"),
            "content-length" => body.bytesize.to_s,
            "x-tenant" => "B",
            "x-probe-id" => env["HTTP_X_PROBE_ID"].to_s,
