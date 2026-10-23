@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   test:
-    name: Rack 3.2.5 and Apache 2.4.69
+    name: Rack 3.2.5 WEBrick and Apache 2.4.69
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -31,10 +31,10 @@ jobs:
             libaprutil1-dev libpcre2-dev libnghttp2-dev libtool libtool-bin \
             pkg-config ruby ruby-dev
 
-      - name: Install vulnerable Rack and Puma
+      - name: Install vulnerable Rack and Rackup/WEBrick
         run: |
           sudo gem install --no-document rack -v 3.2.5
-          sudo gem install --no-document puma
+          sudo gem install --no-document rackup webrick
 
       - name: Build Apache 2.4.69
         run: |
@@ -54,6 +54,6 @@ jobs:
           python3 research/test_rack_files_apache.py \
             --httpd "$RUNNER_TEMP/apache-install-2.4.69/bin/httpd" \
             --server-root "$RUNNER_TEMP/apache-install-2.4.69" \
-            --puma "$(command -v puma)" \
+            --rackup "$(command -v rackup)" \
             --fixture "$GITHUB_WORKSPACE/research/rack_files_fixture" \
             --iterations 100

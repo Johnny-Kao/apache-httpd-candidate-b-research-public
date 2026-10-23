@@ -4,9 +4,9 @@
 The vulnerable Rack version calculates the error response Content-Length with
 String#size rather than String#bytesize. A UTF-8 path therefore makes the
 application emit more bytes than it declares. This test first records that
-real application-level mismatch, then checks whether Apache can carry those
-bytes across a pooled backend connection into an independent tenant B
-response.
+real application-level mismatch through Rackup/WEBrick, then checks whether
+Apache can carry those bytes across a pooled backend connection into an
+independent tenant B response.
 """
 
 from __future__ import annotations
@@ -92,7 +92,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--httpd", required=True, type=Path)
     parser.add_argument("--server-root", required=True, type=Path)
-    parser.add_argument("--puma", required=True, type=Path)
+    parser.add_argument("--rackup", required=True, type=Path)
     parser.add_argument("--fixture", required=True, type=Path)
     parser.add_argument("--iterations", type=int, default=100)
     args = parser.parse_args()
@@ -101,19 +101,19 @@ def main() -> int:
         root = Path(tmp)
         rack_root = root / "files"
         rack_root.mkdir()
-        puma_log = root / "puma.log"
-        puma = subprocess.Popen(
-            [str(args.puma), "-b", "tcp://127.0.0.1:18181", "-t", "1:1",
-             "--environment", "production", str(args.fixture / "config.ru")],
+        rackup_log = root / "rackup.log"
+        rackup = subprocess.Popen(
+            [str(args.rackup), "-s", "webrick", "-o", "127.0.0.1", "-p", "18181",
+             str(args.fixture / "config.ru")],
             cwd=args.fixture,
-            stdout=puma_log.open("w"),
+            stdout=rackup_log.open("w"),
             stderr=subprocess.STDOUT,
             text=True,
             env={**os.environ, "RACK_FILES_ROOT": str(rack_root)},
         )
         proxy = None
         try:
-            wait_for_port(18181, puma, "Puma")
+            wait_for_port(18181, rackup, "Rackup/WEBrick")
             declared, actual, raw = direct_rack_check(18181)
             print(f"rack_files_direct_declared={declared}")
             print(f"rack_files_direct_actual={actual}")
@@ -196,11 +196,11 @@ ProxyPassReverse / http://127.0.0.1:18181/
                     proxy.wait(timeout=3)
                 except subprocess.TimeoutExpired:
                     proxy.kill()
-            puma.terminate()
+            rackup.terminate()
             try:
-                puma.wait(timeout=3)
+                rackup.wait(timeout=3)
             except subprocess.TimeoutExpired:
-                puma.kill()
+                rackup.kill()
 
 
 if __name__ == "__main__":
