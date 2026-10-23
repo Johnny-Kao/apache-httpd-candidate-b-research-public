@@ -11,7 +11,7 @@ locally.
 
 - Public repo: `Johnny-Kao/apache-httpd-candidate-b-research-public`
 - Local clone: `/tmp/apache-candidate-b.xT6FeF`
-- Latest completed evidence commit: `1d59152`.
+- Latest completed evidence commit: `578bc0e`.
 - Apache/Thin runtime is executed only on public GitHub-hosted Actions.
 - Evidence file: `research/evidence/rack-thin-apache-2026-10-23.md`
 
