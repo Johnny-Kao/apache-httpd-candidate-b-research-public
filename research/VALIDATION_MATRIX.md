@@ -70,3 +70,15 @@ CVE assignment or a final severity decision.
 | T30 evidence package | An independent reviewer can reproduce the positive and controls. | Public repo contains workflows, scripts, fixture, commit IDs, and run logs. | This repository and run links | PASS | Logs are public and synthetic only; keep any production details private. |
 | T31 CVSS/severity | Demonstrated impact supports a final High score. | No valid JSON decision change, B secret disclosure, real HTML marker, or real browser DOM was shown. | Stage 3/4 runs | FAIL (High not supported) | Treat as a security-relevant response isolation candidate; do not self-assign CVE/High. |
 | T32 coordinated disclosure | A private Apache security report is warranted. | The Apache-specific candidate is reproducible, but maintainer ownership/severity remains to be confirmed. | [Apache security reporting page](https://httpd.apache.org/security_report.html) | INCONCLUSIVE pending reviewer decision | Prepare a private report with this evidence and explicitly state the malformed/delayed backend prerequisite. |
+
+## Final natural-streaming validation
+
+| ID | Hypothesis | Result | Evidence | Status | Interpretation |
+|---|---|---|---|---|---|
+| T33 | Rack's documented Enumerable response body can create the victim window without a research timer | `String#each_line` with correct B length: 20/20 complete clean B responses; no A canary | [Run 39955810018](https://github.com/Johnny-Kao/apache-httpd-candidate-b-research-public/actions/runs/39955810018), artifact [12503155233](https://github.com/Johnny-Kao/apache-httpd-candidate-b-research-public/actions/runs/39955810018/artifacts/12503155233) | FAIL for natural contamination | Ordinary synchronous Rack streaming did not reproduce the boundary crossing |
+| T34 | The final harness can still reproduce the known mechanism | Existing delayed reference: 7/10 confirmed contamination, 3/10 clean | Same run | PASS | The negative C result is not a dead harness |
+| T35 | The ordinary buffered B control remains clean | 10/10 exact clean B responses | Same run | PASS | No generic response mismatch or error was counted |
+| T36 | Reuse-disabled natural streaming remains clean | 10/10 exact clean B responses; 0/10 shared source ports | Same run | PASS | Confirms the control and the role of reuse |
+
+Final natural-deployment decision: **NOT SUPPORTED**. Stop High/XSS escalation
+and prepare private maintainer triage for the narrower constrained finding.

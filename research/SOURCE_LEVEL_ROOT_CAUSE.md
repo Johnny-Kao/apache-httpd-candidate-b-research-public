@@ -134,11 +134,18 @@ Rack/Thin deployment can create the required delayed malformed response. That
 question is answered in
 [`NATURAL_DEPLOYMENT_VALIDATION.md`](NATURAL_DEPLOYMENT_VALIDATION.md).
 
+## Final natural-streaming result
+
+The follow-up experiment used Rack's documented Enumerable response-body path,
+Ruby `String#each_line`, correct B framing, and no victim timer. Run
+[39955810018](https://github.com/Johnny-Kao/apache-httpd-candidate-b-research-public/actions/runs/39955810018)
+produced 20/20 clean B responses. The old delayed reference reproduced 7/10
+contamination, so the harness remained capable of observing the effect. The
+trace still showed backend reuse in the natural case; the absence of
+contamination is therefore not a reuse-disabled artifact.
+
 ## Next action
 
-Do not add more payload variants. The highest-value follow-up is an
-independent GitHub Actions reproduction using a legitimately slow/streaming
-application response but **no research-only victim-delay helper**, while
-retaining a normal B response. A positive result would strengthen Apache
-ownership and realistic reachability; another negative result would support
-reporting the narrower, prerequisite-heavy isolation finding.
+Stop this experiment branch and submit the narrower finding for private Apache
+maintainer review. Do not claim that ordinary Rack Enumerable streaming makes
+the issue reachable, and do not claim High/XSS impact.

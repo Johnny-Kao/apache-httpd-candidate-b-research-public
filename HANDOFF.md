@@ -11,8 +11,7 @@ locally.
 
 - Public repo: `Johnny-Kao/apache-httpd-candidate-b-research-public`
 - Local clone: `/tmp/apache-candidate-b.xT6FeF`
-- Latest completed evidence commit: `8b3c2d9`; source-level reassessment is
-  being added in the current follow-up commit.
+- Latest completed evidence commit: `1d59152`.
 - Apache/Thin runtime is executed only on public GitHub-hosted Actions.
 - Evidence file: `research/evidence/rack-thin-apache-2026-10-23.md`
 
@@ -74,13 +73,33 @@ timeline.
 
 Current decision: raw response-isolation impact is confirmed in the constrained
 deployment; a realistic no-helper trigger is not supported by current tests;
-application-level High/XSS impact is not established. Further work should be
-one natural legitimate-streaming victim experiment only, not more payload
-variants. A positive complete B response containing A bytes without the
-research-only victim timer would change the realistic-deployment conclusion.
+application-level High/XSS impact is not established. The final natural
+streaming experiment is now complete and negative: Rack Enumerable streaming
+produced 20/20 clean responses and its reuse-disabled control produced 10/10
+clean responses.
 
 See `research/NATURAL_DEPLOYMENT_VALIDATION.md` and
 `research/SECURITY_IMPACT_REASSESSMENT.md`.
+
+## Final natural-streaming validation
+
+Workflow [39955810018](https://github.com/Johnny-Kao/apache-httpd-candidate-b-research-public/actions/runs/39955810018)
+tested the documented Rack Enumerable body path using `String#each_line`, a
+correct B `Content-Length`, no victim timer, and synthetic data only:
+
+- A reference: 7/10 confirmed contamination, 3/10 clean.
+- B ordinary buffered victim: 10/10 clean.
+- C legitimate Enumerable streaming victim: 20/20 clean.
+- D same streaming victim with `disablereuse=On`: 10/10 clean, 0/10 shared
+  backend source ports.
+
+Raw body samples and the manifest are preserved in
+[artifact 12503155233](https://github.com/Johnny-Kao/apache-httpd-candidate-b-research-public/actions/runs/39955810018/artifacts/12503155233).
+
+Acceptance answer: **No.** The observed failure was not demonstrated with an
+ordinary legitimate Rack streaming victim without the research-only delayed
+victim helper. Stop this branch and prepare the narrower confirmed finding for
+private Apache security triage.
 
 ## Application-impact result
 
@@ -138,6 +157,6 @@ Required reports now exist:
 - `research/SECURITY_IMPACT_REASSESSMENT.md`
 
 Recommended next action is private Apache security triage using the proven
-response-isolation evidence and explicit malformed/delayed-backend
-prerequisite. Do not publicly file an Apache vulnerability issue or claim a
+response-isolation evidence and explicit malformed/delayed-backend and timing
+prerequisites. Do not publicly file an Apache vulnerability issue or claim a
 CVE/High rating without maintainer confirmation.

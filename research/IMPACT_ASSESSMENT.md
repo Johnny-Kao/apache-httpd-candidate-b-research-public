@@ -77,6 +77,12 @@ reachability and provenance are absent. A final CVSS vector should be left to
 Apache's triage unless a real accepted-data, secret-disclosure, cache, or
 browser-impact chain is independently reproduced.
 
+The final natural-streaming validation used Rack's documented Enumerable body
+path (`String#each_line`) with correct B framing and no victim timer. It
+produced 20/20 clean B responses while the same run's delayed reference
+produced 7/10 contamination. This is the decisive negative result for ordinary
+Rack streaming reachability.
+
 ## Mitigations validated by the tests
 
 - Disable backend connection reuse for the affected worker (`disablereuse=On`)
@@ -90,10 +96,10 @@ These are deployment mitigations, not a confirmed upstream Apache fix.
 
 ## Next recommended action
 
-Prepare the private Apache report around the proven response-isolation flaw,
-include the malformed/delayed response prerequisite, and ask maintainers to
-confirm ownership and severity. Do not include the public synthetic HTML
-probe as proof of real XSS.
+Stop High/XSS escalation. Prepare the private Apache report around the proven
+response-isolation flaw, include the malformed/delayed response and favorable
+victim-timing prerequisites, and ask maintainers to confirm ownership and
+severity. Do not include the public synthetic HTML probe as proof of real XSS.
 
 ## Validation record
 
@@ -102,3 +108,4 @@ probe as proof of real XSS.
 | A bytes cross into a complete B response | Shared Apache worker, Rack/Thin async malformed A, delayed synthetic B | A canary appears in B body while B metadata remains B | 78/100 and 49/50 strict positives | Runs 39950101256 and 39950603922 | PASS | Response isolation is broken in this deployment | Requires malformed/delayed backend and timing window | Private Apache triage |
 | Contamination is accepted as victim JSON | Synthetic B JSON with `allowed=false` and secret marker | Contaminated body parses and changes decision | 0 contaminated parses; 0 decision changes | Run 39952446877 | FAIL for this impact | Current bytes are corruption, not an accepted decision | Only one synthetic JSON shape | Do not claim authorization impact |
 | Real tenant input reaches browser HTML | Real Rack/Thin HTML victim plus Chromium | A marker reaches B DOM | Marker absent; browser gate not reached | Run 39951536767 | FAIL / INCONCLUSIVE for browser | Synthetic queued-response browser impact is not real reachability | Browser tested only after raw marker gate | Stop High escalation |
+| Legitimate Rack streaming reaches B contamination | Rack Enumerable `String#each_line`, correct B length, no victim timer | A canary appears in a complete B response | 20/20 clean; delayed reference 7/10 positive | Run 39955810018; artifact 12503155233 | FAIL | Ordinary streaming did not preserve the race window | Other asynchronous frameworks untested | Private Apache triage |

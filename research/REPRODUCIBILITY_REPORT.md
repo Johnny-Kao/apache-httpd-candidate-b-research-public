@@ -21,6 +21,7 @@ No Apache or Thin runtime was executed on the local workstation.
 | Stage 3 JSON integrity | [39952446877](https://github.com/Johnny-Kao/apache-httpd-candidate-b-research-public/actions/runs/39952446877) | `60b48f5` | 21/30 contamination; 0 contaminated JSON parses/decision changes |
 | Real Rack/Thin HTML/browser gate | [39951536767](https://github.com/Johnny-Kao/apache-httpd-candidate-b-research-public/actions/runs/39951536767) | `eac3a6a` | Real HTML marker not observed |
 | Synthetic header/HTML impact characterization | [39951084313](https://github.com/Johnny-Kao/apache-httpd-candidate-b-research-public/actions/runs/39951084313) | `eac3a6a` | Header and browser DOM positive only in controlled backend harness |
+| Final natural Rack Enumerable streaming matrix | [39955810018](https://github.com/Johnny-Kao/apache-httpd-candidate-b-research-public/actions/runs/39955810018) | `1d59152` | Reference 7/10 positive; buffered B 10/10 clean; Enumerable B 20/20 clean; reuse-disabled 10/10 clean |
 
 ## Reproduction procedure
 
@@ -58,13 +59,16 @@ beginning `98 83 A0000_CANARY`. The reuse-disabled control has complete
 - Accepted JSON/security-decision impact: not demonstrated; contaminated
   samples did not parse.
 - Real HTML/browser impact: not demonstrated.
+- Natural legitimate Rack Enumerable victim streaming: not demonstrated; 20/20 clean.
 - Synthetic queued-response header/HTML impact: PASS as a characterization
   only, not as the real tenant trigger.
 - Final CVE/High classification: INCONCLUSIVE and not claimed.
 
 ## Evidence and limitations
 
-The run URLs retain the raw CI logs, including Apache trace lines. Public logs
+The run URLs retain the raw CI logs, including Apache trace lines. The final
+natural-streaming run also preserves raw synthetic B bodies and a manifest in
+[artifact 12503155233](https://github.com/Johnny-Kao/apache-httpd-candidate-b-research-public/actions/runs/39955810018/artifacts/12503155233). Public logs
 contain only synthetic tenants, markers, and the synthetic secret string.
 The test does not establish prevalence across all applications, Apache
 versions, MPMs, HTTP/2, TLS, caches, or backend frameworks.
@@ -83,3 +87,4 @@ out of the public repository.
 | The finding is reproducible | Fresh GitHub-hosted runner, Apache 2.4.69, Rack 3.2.5, Thin | Strict positive repeats and control stays clean | 78/100 positive; 20/20 clean control | Run 39950101256 | PASS | Baseline is independently rerunnable | Public CI only; timing-sensitive | Reproduce from run link |
 | Root cause is pooled shared backend state | Five Stage 2 cases | Shared async case positive; controls negative | 49/50 positive; all four controls clean | Run 39950603922 | PASS | Prerequisites are bounded | Other versions/backends untested | Include prerequisites in report |
 | Higher impact is proven | Real Rack/Thin HTML and synthetic browser probe | Real marker/DOM evidence | Synthetic harness positive; real Rack/Thin marker absent | Runs 39951084313 and 39951536767 | INCONCLUSIVE for real High | Apache consequence is characterized but real reachability is not | No production app or cache test | Do not claim High/CVE |
+| Natural Rack streaming reaches the contaminated boundary | Rack Enumerable `String#each_line`, correct B framing, no victim timer | A canary in a complete B response | 20/20 clean; reference in same run 7/10 positive | Run 39955810018 | FAIL | Ordinary synchronous Enumerable streaming did not reproduce the race | Other asynchronous streaming frameworks untested | Stop this branch; private maintainer triage |

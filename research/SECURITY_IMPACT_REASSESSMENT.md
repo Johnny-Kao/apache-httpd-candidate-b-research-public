@@ -37,6 +37,13 @@ Evidence: [Stage 3 JSON](https://github.com/Johnny-Kao/apache-httpd-candidate-b-
 [real Rack/Thin HTML](https://github.com/Johnny-Kao/apache-httpd-candidate-b-research-public/actions/runs/39951536767),
 and [synthetic header/DOM characterization](https://github.com/Johnny-Kao/apache-httpd-candidate-b-research-public/actions/runs/39951084313).
 
+The final natural-streaming validation
+([run 39955810018](https://github.com/Johnny-Kao/apache-httpd-candidate-b-research-public/actions/runs/39955810018))
+used Rack's documented Enumerable response-body path, Ruby `String#each_line`,
+correct B `Content-Length`, and no victim timer. It produced 20/20 clean B
+responses; the reuse-disabled control produced 10/10 clean responses. The raw
+body artifact is [12503155233](https://github.com/Johnny-Kao/apache-httpd-candidate-b-research-public/actions/runs/39955810018/artifacts/12503155233).
+
 ## What the synthetic high-impact harness does and does not prove
 
 The queued-response harness proves that if the backend stream is arranged so
@@ -58,12 +65,10 @@ disclosure, cache poisoning, authorization bypass, RCE, or a final CVE claim.
 The principal unresolved question is Apache maintainer ownership of behavior
 triggered by an invalid origin response and a favorable timing window.
 
-**Further High/XSS investigation: NOT SUPPORTED by the current evidence.** One
-additional natural-streaming experiment is technically justified because it
-could resolve reachability without adding payload complexity. If it is
-negative, the higher-impact branch should stop. If it is positive, the next
-required proof is a valid victim application response and direct browser or
-security-decision evidence—not merely more malformed bytes.
+**Further High/XSS investigation: NOT SUPPORTED.** The highest-value natural
+streaming experiment was completed and was negative. The higher-impact branch
+should stop. The remaining finding is the narrower, timing- and malformed-
+backend-dependent response-isolation behavior.
 
 ## Required evidence for any escalation
 
@@ -80,8 +85,7 @@ An escalation would require all of the following in one reproducible chain:
 ## Next action
 
 Prepare a private Apache maintainer report around the narrower confirmed
-response-isolation behavior, with the malformed/delayed prerequisite stated in
-the title and impact section. Do not publish the synthetic DOM result as an
-ordinary tenant exploit. The single highest-value experiment is the
-no-research-timer legitimate streaming victim test described in
-[`NATURAL_DEPLOYMENT_VALIDATION.md`](NATURAL_DEPLOYMENT_VALIDATION.md).
+response-isolation behavior, with the malformed A framing and favorable victim
+timing prerequisite stated in the title and impact section. Do not publish the
+synthetic DOM result as an ordinary tenant exploit. No further High/XSS payload
+variants are justified by the current evidence.
