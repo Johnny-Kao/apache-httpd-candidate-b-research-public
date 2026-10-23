@@ -59,7 +59,10 @@ files = Rack::Files.new(ENV.fetch("RACK_FILES_ROOT"))
 app = lambda do |env|
   if env["PATH_INFO"] == "/victim"
     body = if ENV["RACK_THIN_IMPACT"] == "1"
-      "<html><body>" + ("B" * 2048) + "VICTIM-OWN</body></html>"
+      # A normal small HTML page is enough to test whether attacker bytes can
+      # enter a victim document; keeping it short also makes the delayed A
+      # tail large enough to cover the complete victim body.
+      "<html><body>" + ("B" * 512) + "VICTIM-OWN</body></html>"
     else
       "VICTIM-OWN"
     end

