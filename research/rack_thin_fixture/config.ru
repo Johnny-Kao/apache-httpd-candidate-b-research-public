@@ -20,9 +20,10 @@ class Utf8PathInfo
 end
 
 class AsyncBody
-  def initialize(bytes, declared)
+  def initialize(bytes, declared, delay)
     @bytes = bytes
     @declared = declared
+    @delay = delay
   end
 
   def call(stream)
@@ -31,7 +32,7 @@ class AsyncBody
     # Content-Length. Return control to Thin after the declared bytes and emit
     # only the naturally remaining bytes later on the event loop.
     stream << @bytes.byteslice(0, @declared)
-    EventMachine.add_timer(0.25) do
+    EventMachine.add_timer(@delay) do
       tail = @bytes.byteslice(@declared..)
       stream << tail if tail && !tail.empty?
       stream.close
@@ -40,12 +41,13 @@ class AsyncBody
 end
 
 class DelayedVictimBody
-  def initialize(body)
+  def initialize(body, delay)
     @body = body
+    @delay = delay
   end
 
   def call(stream)
-    EventMachine.add_timer(0.50) do
+    EventMachine.add_timer(@delay) do
       stream << @body
       stream.close
     end
@@ -64,13 +66,15 @@ app = lambda do |env|
     [200, {"content-type" => ENV["RACK_THIN_IMPACT"] == "1" ? "text/html" : "text/plain",
            "content-length" => body.bytesize.to_s,
            "x-tenant" => "B"},
-     ENV["RACK_THIN_FAST_VICTIM"] == "1" ? [body] : DelayedVictimBody.new(body)]
+     ENV["RACK_THIN_FAST_VICTIM"] == "1" ? [body] :
+       DelayedVictimBody.new(body, ENV["RACK_THIN_IMPACT"] == "1" ? 1.50 : 0.50)]
   else
     status, headers, body = files.call(env)
     if env["PATH_INFO"].start_with?("/missing/")
       bytes = +""
       body.each { |part| bytes << part }
-      [status, headers, AsyncBody.new(bytes, headers.fetch("content-length").to_i)]
+      delay = ENV["RACK_THIN_IMPACT"] == "1" ? 0.75 : 0.25
+      [status, headers, AsyncBody.new(bytes, headers.fetch("content-length").to_i, delay)]
     else
       [status, headers, body]
     end
