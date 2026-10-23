@@ -169,6 +169,9 @@ ProxyPassReverse / http://127.0.0.1:18181/
                     if os.environ.get("RACK_THIN_IMPACT") == "1":
                         if (b"A_CONTROLLED_MARKER" not in body_b
                                 or b"<script>A_CONTROLLED_MARKER</script>" not in body_b):
+                            if i == 0:
+                                print(f"rack_thin_impact_headers={headers_b!r}")
+                                print(f"rack_thin_impact_body_prefix={body_b[:500]!r}")
                             apache_errors += 1
                             continue
                         contaminated += 1
