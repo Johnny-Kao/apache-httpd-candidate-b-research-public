@@ -47,11 +47,11 @@ def parse_response(sock: socket.socket) -> tuple[bytes, bytes, int, bytes]:
     return headers, body[:length], length, body[length:]
 
 
-def wait_for_port(port: int, proc: subprocess.Popen[str], label: str) -> None:
+def wait_for_port(port: int, proc: subprocess.Popen[str], label: str, log_path: Path) -> None:
     deadline = time.monotonic() + 20
     while time.monotonic() < deadline:
         if proc.poll() is not None:
-            raise RuntimeError(f"{label} exited: {proc.stderr.read()}")
+            raise RuntimeError(f"{label} exited; log={log_path.read_text()!r}")
         try:
             with socket.create_connection(("127.0.0.1", port), timeout=1):
                 return
@@ -76,7 +76,7 @@ def main() -> int:
         thin_log = root / "thin.log"
         thin = subprocess.Popen(
             [str(args.thin), "start", "-R", str(args.fixture / "config.ru"),
-             "-a", "127.0.0.1", "-p", "18181", "--no-daemonize"],
+             "-a", "127.0.0.1", "-p", "18181"],
             cwd=args.fixture,
             stdout=thin_log.open("w"),
             stderr=subprocess.STDOUT,
@@ -85,7 +85,7 @@ def main() -> int:
         )
         proxy = None
         try:
-            wait_for_port(18181, thin, "Thin")
+            wait_for_port(18181, thin, "Thin", thin_log)
 
             path = "/missing/" + "%E2%98%83" * 80
             direct_request = (
@@ -131,7 +131,7 @@ ProxyPassReverse / http://127.0.0.1:18181/
                 text=True,
                 env={**os.environ, "APACHE_RUN_DIR": str(root)},
             )
-            wait_for_port(18080, proxy, "Apache")
+            wait_for_port(18080, proxy, "Apache", root / "error.log")
 
             contaminated = 0
             apache_errors = 0
