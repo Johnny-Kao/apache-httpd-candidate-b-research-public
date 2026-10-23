@@ -31,11 +31,26 @@ def read_response(sock: socket.socket) -> bytes:
             raise RuntimeError(f"incomplete response headers: {data!r}")
         data += chunk
     head, body = data.split(b"\r\n\r\n", 1)
-    length = next(
-        int(line.split(b":", 1)[1].strip())
-        for line in head.split(b"\r\n")
+    length_lines = [
+        line for line in head.split(b"\r\n")
         if line.lower().startswith(b"content-length:")
-    )
+    ]
+    if not length_lines:
+        # Thin can emit a close-delimited error response for an overlong or
+        # otherwise rejected request. Keep it as diagnostic input instead of
+        # treating a harness parsing failure as a security result.
+        if b"connection: close" in head.lower():
+            sock.settimeout(3)
+            while True:
+                try:
+                    chunk = sock.recv(8192)
+                except socket.timeout:
+                    break
+                if not chunk:
+                    break
+                body += chunk
+        return head + b"\r\n\r\n" + body
+    length = int(length_lines[0].split(b":", 1)[1].strip())
     while len(body) < length:
         body += sock.recv(8192)
     return head + b"\r\n\r\n" + body[:length]
