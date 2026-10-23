@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+gem "rack", "= 3.2.5"
 require "rack"
 
 files = Rack::Files.new(ENV.fetch("RACK_FILES_ROOT"))
