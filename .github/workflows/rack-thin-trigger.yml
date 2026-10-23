@@ -61,7 +61,7 @@ jobs:
             --iterations 100
       - name: Control with Apache backend reuse disabled
         run: |
-          python3 research/test_rack_thin_apache.py \
+          RACK_THIN_FAST_VICTIM=1 python3 research/test_rack_thin_apache.py \
             --httpd "$RUNNER_TEMP/apache-install-2.4.69/bin/httpd" \
             --server-root "$RUNNER_TEMP/apache-install-2.4.69" \
             --thin "$(command -v thin)" \

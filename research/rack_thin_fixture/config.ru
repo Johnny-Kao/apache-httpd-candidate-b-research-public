@@ -55,7 +55,8 @@ app = lambda do |env|
     body = "VICTIM-OWN"
     [200, {"content-type" => "text/plain",
            "content-length" => body.bytesize.to_s,
-           "x-tenant" => "B"}, DelayedVictimBody.new]
+           "x-tenant" => "B"},
+     ENV["RACK_THIN_FAST_VICTIM"] == "1" ? [body] : DelayedVictimBody.new]
   else
     status, headers, body = files.call(env)
     if env["PATH_INFO"].start_with?("/missing/")
