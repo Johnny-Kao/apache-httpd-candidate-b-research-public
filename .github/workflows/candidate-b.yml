@@ -101,13 +101,6 @@ jobs:
               --httpd "$install_dir/bin/httpd" \
               --server-root "$install_dir" \
               --backend "$RUNNER_TEMP/go-late-write-fixture-$ref"
-            echo "=== gin-contrib/timeout v0.0.1 source-equivalent timeout pattern: $ref ==="
-            go build -o "$RUNNER_TEMP/gin-timeout-fixture-$ref" \
-              research/gin_timeout_fixture/main.go
-            python3 research/test_gin_timeout_apache.py \
-              --httpd "$install_dir/bin/httpd" \
-              --server-root "$install_dir" \
-              --backend "$RUNNER_TEMP/gin-timeout-fixture-$ref"
             echo "=== Candidate B matrix: $ref ==="
             python3 research/test_candidate_b.py \
               --httpd "$install_dir/bin/httpd" \

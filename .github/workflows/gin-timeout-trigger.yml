@@ -1,0 +1,54 @@
+name: Gin timeout trigger validation
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "research/gin_timeout_fixture/**"
+      - "research/test_gin_timeout_apache.py"
+      - ".github/workflows/gin-timeout-trigger.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gin-timeout-trigger
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Apache 2.4.69 source-equivalent trigger
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out research repository
+        uses: actions/checkout@v4
+
+      - name: Install Apache build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake build-essential libapr1-dev \
+            libaprutil1-dev libpcre2-dev libnghttp2-dev libtool libtool-bin \
+            pkg-config
+
+      - name: Build Apache 2.4.69
+        run: |
+          source_dir="$RUNNER_TEMP/httpd-2.4.69"
+          install_dir="$RUNNER_TEMP/apache-install-2.4.69"
+          git clone --depth 1 --branch 2.4.69 \
+            https://github.com/apache/httpd.git "$source_dir"
+          cd "$source_dir"
+          ./buildconf --with-apr=/usr/bin/apr-1-config
+          ./configure --prefix="$install_dir" \
+            --enable-proxy --enable-proxy-http --enable-mods-shared=most
+          make -j2
+          make install
+
+      - name: Run source-equivalent gin-contrib/timeout trigger
+        run: |
+          go build -o "$RUNNER_TEMP/gin-timeout-fixture" \
+            research/gin_timeout_fixture/main.go
+          python3 research/test_gin_timeout_apache.py \
+            --httpd "$RUNNER_TEMP/apache-install-2.4.69/bin/httpd" \
+            --server-root "$RUNNER_TEMP/apache-install-2.4.69" \
+            --backend "$RUNNER_TEMP/gin-timeout-fixture"
