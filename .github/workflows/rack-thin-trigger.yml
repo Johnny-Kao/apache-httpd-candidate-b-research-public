@@ -75,4 +75,4 @@ jobs:
             --server-root "$RUNNER_TEMP/apache-install-2.4.69" \
             --thin "$(command -v thin)" \
             --fixture "$GITHUB_WORKSPACE/research/rack_thin_fixture" \
-            --iterations 20
+            --iterations 100

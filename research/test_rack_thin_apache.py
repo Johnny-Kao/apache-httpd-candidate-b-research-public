@@ -91,14 +91,15 @@ def main() -> int:
 
             impact = os.environ.get("RACK_THIN_IMPACT") == "1"
             if impact:
-                # Keep a long delayed tail like the core test, but place the
-                # decoded script marker at its beginning. For 80 snowmen
-                # before a 36-byte marker, 123 snowmen after it makes the
-                # marker start at the byte offset advertised by Content-Length.
+                # Keep the delayed tail in ordinary body syntax. A harmless
+                # UTF-8 body byte precedes the script so Apache does not see
+                # '<script>' as the first byte of a possible next response.
+                # With 40 snowmen before the marker and 12 after it, the
+                # Rack character-count boundary starts at snowman+script.
                 path = (
-                    "/missing/" + "%E2%98%83" * 80
-                    + "%3Cscript%3EA_CONTROLLED_MARKER%3C%2Fscript%3E"
-                    + "%E2%98%83" * 123
+                    "/missing/" + "%E2%98%83" * 40
+                    + "%E2%98%83%3Cscript%3EA_CONTROLLED_MARKER%3C%2Fscript%3E"
+                    + "%E2%98%83" * 12
                 )
             else:
                 path = "/missing/" + "%E2%98%83" * 80 + "A_CONTROLLED_MARKER"
@@ -123,7 +124,9 @@ def main() -> int:
             print(f"rack_thin_direct_mismatch={len(body) + len(extra) > declared}")
             if impact:
                 print(f"rack_thin_direct_tail_prefix={extra[:80]!r}")
-                if not extra.startswith(b"<script>A_CONTROLLED_MARKER</script>"):
+                if not extra.startswith(
+                    b"\xe2\x98\x83<script>A_CONTROLLED_MARKER</script>"
+                ):
                     raise AssertionError(
                         "HTML marker is not the first delayed backend byte"
                     )
