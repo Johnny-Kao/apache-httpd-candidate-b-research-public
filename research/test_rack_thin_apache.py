@@ -143,7 +143,7 @@ LoadModule authz_core_module modules/mod_authz_core.so
 LoadModule log_config_module modules/mod_log_config.so
 LoadModule proxy_module modules/mod_proxy.so
 LoadModule proxy_http_module modules/mod_proxy_http.so
-LogFormat "host=%{Host}i source=%{proxy-source-port}n status=%>s bytes=%B" reuse
+LogFormat "host=%{{Host}}i source=%{{proxy-source-port}}n status=%>s bytes=%B" reuse
 CustomLog "{root / 'access.log'}" reuse
 ProxyPass / http://127.0.0.1:18181/ retry=0{reuse}
 ProxyPassReverse / http://127.0.0.1:18181/
