@@ -11,7 +11,8 @@ locally.
 
 - Public repo: `Johnny-Kao/apache-httpd-candidate-b-research-public`
 - Local clone: `/tmp/apache-candidate-b.xT6FeF`
-- Latest commit: `60b48f5`
+- Latest completed evidence commit: `8b3c2d9`; source-level reassessment is
+  being added in the current follow-up commit.
 - Apache/Thin runtime is executed only on public GitHub-hosted Actions.
 - Evidence file: `research/evidence/rack-thin-apache-2026-10-23.md`
 
@@ -42,6 +43,44 @@ showed the following prerequisites:
 
 Apache trace explicitly recorded `reusing backend connection` and body-send
 events. See `research/ROOT_CAUSE_ANALYSIS.md`.
+
+## Source-level result
+
+The exact Apache 2.4.69 source was reviewed at commit
+`1e06e9860794ce39605b79a0a787abfe084e5677`. `http_filters.c` inserts EOS when
+the declared `Content-Length` reaches zero; `mod_proxy_http.c` then releases
+the backend connection; `proxy_util.c` checks for pending bytes when a later
+request acquires a pooled connection, but `connection_cleanup()` does not make
+the same check at release. Therefore buffered extra bytes produce `AH03408`
+and are closed, while delayed bytes can arrive after the check and enter B's
+body stream. This is a high-confidence mechanics result, but Apache ownership
+remains a maintainer-classification question because the backend first
+violates its declared framing.
+
+See `research/SOURCE_LEVEL_ROOT_CAUSE.md` for source links and the state
+timeline.
+
+## Natural-deployment and impact decision
+
+- The positive 49/50 path requires the custom delayed A stream and delayed B
+  victim window in this fixture.
+- Removing the custom victim delay produced 0/20; a normal buffered malformed
+  Rack response produced 0/20 with `AH03408`; separate and correct-length
+  controls were also clean.
+- JSON contamination never produced a valid contaminated object or changed a
+  synthetic security decision. Real Rack/Thin HTML never reached the browser
+  marker gate. Synthetic queued-response header/DOM positives are not evidence
+  of ordinary tenant reachability.
+
+Current decision: raw response-isolation impact is confirmed in the constrained
+deployment; a realistic no-helper trigger is not supported by current tests;
+application-level High/XSS impact is not established. Further work should be
+one natural legitimate-streaming victim experiment only, not more payload
+variants. A positive complete B response containing A bytes without the
+research-only victim timer would change the realistic-deployment conclusion.
+
+See `research/NATURAL_DEPLOYMENT_VALIDATION.md` and
+`research/SECURITY_IMPACT_REASSESSMENT.md`.
 
 ## Application-impact result
 
@@ -94,6 +133,9 @@ Required reports now exist:
 - `research/ROOT_CAUSE_ANALYSIS.md`
 - `research/IMPACT_ASSESSMENT.md`
 - `research/REPRODUCIBILITY_REPORT.md`
+- `research/SOURCE_LEVEL_ROOT_CAUSE.md`
+- `research/NATURAL_DEPLOYMENT_VALIDATION.md`
+- `research/SECURITY_IMPACT_REASSESSMENT.md`
 
 Recommended next action is private Apache security triage using the proven
 response-isolation evidence and explicit malformed/delayed-backend
