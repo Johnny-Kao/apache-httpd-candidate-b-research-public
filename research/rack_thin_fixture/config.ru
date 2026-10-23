@@ -57,11 +57,11 @@ files = Rack::Files.new(ENV.fetch("RACK_FILES_ROOT"))
 app = lambda do |env|
   if env["PATH_INFO"] == "/victim"
     body = if ENV["RACK_THIN_IMPACT"] == "1"
-      ("B" * 2048) + "VICTIM-OWN"
+      "<html><body>" + ("B" * 2048) + "VICTIM-OWN</body></html>"
     else
       "VICTIM-OWN"
     end
-    [200, {"content-type" => "text/plain",
+    [200, {"content-type" => ENV["RACK_THIN_IMPACT"] == "1" ? "text/html" : "text/plain",
            "content-length" => body.bytesize.to_s,
            "x-tenant" => "B"},
      ENV["RACK_THIN_FAST_VICTIM"] == "1" ? [body] : DelayedVictimBody.new(body)]
