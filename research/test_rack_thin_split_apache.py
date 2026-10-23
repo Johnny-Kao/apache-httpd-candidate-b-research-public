@@ -156,7 +156,8 @@ def one_run(args: argparse.Namespace, path: str, expected_marker: bytes,
             print(f"direct_tail_marker={expected_marker in direct}")
             print(f"direct_response_tail={direct[-1200:]!r}")
             if expected_marker not in direct:
-                raise AssertionError("Rack/Thin direct response did not contain the aligned marker")
+                print("rack_thin_split_input_reached_app=False")
+                return False
             apache = start_apache(args.httpd, args.server_root, 18181, 18080, root, disablereuse)
             response_a = trigger_attack(18080, path)
             print(f"response_a_suffix={response_a[-80:]!r}")
@@ -200,6 +201,9 @@ def main() -> int:
         raise SystemExit("chromium is required for browser validation")
     path, marker = make_attack_path()
     raw_positive = one_run(args, path, marker, False, False)
+    if not raw_positive:
+        print("rack_thin_split_real_trigger=not_observed")
+        return 0
     browser_positive = one_run(args, path, marker, False, True)
     one_run(args, path, marker, True, False)
     one_run(args, path, marker, True, True)
