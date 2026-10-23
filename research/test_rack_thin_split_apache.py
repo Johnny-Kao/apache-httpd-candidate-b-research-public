@@ -113,7 +113,11 @@ def make_attack_path() -> tuple[str, bytes]:
 def make_html_body_path() -> tuple[str, bytes]:
     html = b"<html><script>document.title='A_CONTROLLED_CANARY'</script></html>"
     marker = "☃".encode() + html
-    before = 120
+    # Keep the request target close to the accepted full-response probe. The
+    # first version used 120 padding code points and Thin rejected the target
+    # with 400 before Rack saw it, which tested the parser limit rather than
+    # the response-tail behavior.
+    before = 40
     for after in range(before * 2):
         if after == 2 * before - (1 + len(html)) - 1:
             encoded_marker = quote_from_bytes(marker, safe=b"")
