@@ -1,0 +1,60 @@
+name: Rack Thin final natural streaming validation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rack-thin-natural-streaming
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Natural Rack Enumerable victim response
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out research repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake build-essential libapr1-dev \
+            libaprutil1-dev libpcre2-dev libnghttp2-dev libtool libtool-bin \
+            pkg-config ruby ruby-dev
+          sudo gem install --no-document rack -v 3.2.5
+          sudo gem install --no-document thin
+
+      - name: Build Apache 2.4.69
+        run: |
+          source_dir="$RUNNER_TEMP/httpd-2.4.69"
+          install_dir="$RUNNER_TEMP/apache-install-2.4.69"
+          git clone --depth 1 --branch 2.4.69 \
+            https://github.com/apache/httpd.git "$source_dir"
+          cd "$source_dir"
+          ./buildconf --with-apr=/usr/bin/apr-1-config
+          ./configure --prefix="$install_dir" \
+            --enable-proxy --enable-proxy-http --enable-mods-shared=most
+          make -j2
+          make install
+
+      - name: Run final natural streaming matrix
+        env:
+          NATURAL_EVIDENCE_DIR: "$RUNNER_TEMP/natural-evidence"
+        run: |
+          python3 research/test_rack_thin_natural_streaming.py \
+            --httpd "$RUNNER_TEMP/apache-install-2.4.69/bin/httpd" \
+            --server-root "$RUNNER_TEMP/apache-install-2.4.69" \
+            --thin "$(command -v thin)" \
+            --fixture "$GITHUB_WORKSPACE/research/rack_thin_natural_fixture"
+
+      - name: Upload synthetic raw-response evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rack-thin-natural-streaming-evidence
+          path: ${{ runner.temp }}/natural-evidence
+          if-no-files-found: error
