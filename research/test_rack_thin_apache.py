@@ -99,10 +99,11 @@ def main() -> int:
                 # boundary starts at snowman+script.
                 script = b"<script>A_CONTROLLED_MARKER</script>"
                 before = 40
-                # Rack's character-count boundary starts exactly at the
-                # extra snowman before the script. The equation accounts for
-                # that snowman and the final response newline.
-                after = 2 * before - len(script) - 2
+                # Start at the second byte of the UTF-8 snowman. This matches
+                # the successful raw-body boundary observed in the core test
+                # (the B body began with 98 83), while leaving the HTML marker
+                # immediately after that harmless leftover prefix.
+                after = 2 * before - len(script) - 1
                 path = (
                     "/missing/" + "%E2%98%83" * before
                     + "%E2%98%83" + quote_from_bytes(script, safe=b"")
@@ -132,7 +133,7 @@ def main() -> int:
             if impact:
                 print(f"rack_thin_direct_tail_prefix={extra[:80]!r}")
                 if not extra.startswith(
-                    b"\xe2\x98\x83<script>A_CONTROLLED_MARKER</script>"
+                    b"\x98\x83<script>A_CONTROLLED_MARKER</script>"
                 ):
                     raise AssertionError(
                         "HTML marker is not the first delayed backend byte"
