@@ -93,12 +93,12 @@ def main() -> int:
             if impact:
                 # Keep a long delayed tail like the core test, but place the
                 # decoded script marker at its beginning. For 80 snowmen
-                # before a 36-byte marker, 125 snowmen after it makes the
+                # before a 36-byte marker, 123 snowmen after it makes the
                 # marker start at the byte offset advertised by Content-Length.
                 path = (
                     "/missing/" + "%E2%98%83" * 80
                     + "%3Cscript%3EA_CONTROLLED_MARKER%3C%2Fscript%3E"
-                    + "%E2%98%83" * 125
+                    + "%E2%98%83" * 123
                 )
             else:
                 path = "/missing/" + "%E2%98%83" * 80 + "A_CONTROLLED_MARKER"
