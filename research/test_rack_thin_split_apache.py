@@ -154,6 +154,7 @@ def one_run(args: argparse.Namespace, path: str, expected_marker: bytes,
             wait_for_port(18181, thin, "Thin")
             direct = trigger_attack(18181, path)
             print(f"direct_tail_marker={expected_marker in direct}")
+            print(f"direct_response_tail={direct[-1200:]!r}")
             if expected_marker not in direct:
                 raise AssertionError("Rack/Thin direct response did not contain the aligned marker")
             apache = start_apache(args.httpd, args.server_root, 18181, 18080, root, disablereuse)
