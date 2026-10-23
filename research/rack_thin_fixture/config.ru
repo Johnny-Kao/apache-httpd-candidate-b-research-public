@@ -96,8 +96,16 @@ app = lambda do |env|
     if env["PATH_INFO"].start_with?("/missing/")
       bytes = +""
       body.each { |part| bytes << part }
+      mode = ENV.fetch("RACK_THIN_A_MODE", "async_malformed")
+      if mode == "correct_length"
+        headers["content-length"] = bytes.bytesize.to_s
+      end
       delay = Float(ENV.fetch("RACK_THIN_A_DELAY", "0.25"))
-      [status, headers, AsyncBody.new(bytes, headers.fetch("content-length").to_i, delay)]
+      if mode == "buffered_malformed" || mode == "correct_length_buffered"
+        [status, headers, [bytes]]
+      else
+        [status, headers, AsyncBody.new(bytes, headers.fetch("content-length").to_i, delay)]
+      end
     else
       [status, headers, body]
     end
