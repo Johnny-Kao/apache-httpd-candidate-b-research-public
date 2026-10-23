@@ -42,9 +42,8 @@ jobs:
           make install
 
       - name: Run final natural streaming matrix
-        env:
-          NATURAL_EVIDENCE_DIR: "$RUNNER_TEMP/natural-evidence"
         run: |
+          export NATURAL_EVIDENCE_DIR="$RUNNER_TEMP/natural-evidence"
           python3 research/test_rack_thin_natural_streaming.py \
             --httpd "$RUNNER_TEMP/apache-install-2.4.69/bin/httpd" \
             --server-root "$RUNNER_TEMP/apache-install-2.4.69" \
