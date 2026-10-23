@@ -169,7 +169,8 @@ def one_run(args: argparse.Namespace, path: str, expected_marker: bytes,
             cwd=args.fixture, stdout=thin_log.open("w"), stderr=subprocess.STDOUT,
             text=True, env={**os.environ, "RACK_FILES_ROOT": str(root / "files"),
                             "RACK_THIN_A_DELAY": str(a_delay),
-                            "RACK_THIN_B_DELAY": str(b_delay)},
+                            "RACK_THIN_B_DELAY": str(b_delay),
+                            "RACK_THIN_STRIP_CASCADE": "1"},
         )
         (root / "files").mkdir()
         apache = None

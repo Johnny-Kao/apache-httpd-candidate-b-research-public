@@ -70,6 +70,7 @@ app = lambda do |env|
       DelayedVictimBody.new(body, Float(ENV.fetch("RACK_THIN_B_DELAY", "0.50")))]
   else
     status, headers, body = files.call(env)
+    headers.delete("x-cascade") if ENV["RACK_THIN_STRIP_CASCADE"] == "1"
     if env["PATH_INFO"].start_with?("/missing/")
       bytes = +""
       body.each { |part| bytes << part }
