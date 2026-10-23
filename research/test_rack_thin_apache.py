@@ -68,6 +68,7 @@ def main() -> int:
     parser.add_argument("--thin", required=True, type=Path)
     parser.add_argument("--fixture", required=True, type=Path)
     parser.add_argument("--iterations", type=int, default=100)
+    parser.add_argument("--disablereuse", action="store_true")
     args = parser.parse_args()
 
     with tempfile.TemporaryDirectory(prefix="rack-thin-trigger-") as tmp:
@@ -112,6 +113,7 @@ def main() -> int:
                 raise AssertionError("Thin did not emit the expected real mismatch")
 
             config = root / "httpd.conf"
+            reuse = " disablereuse=On" if args.disablereuse else ""
             config.write_text(f"""\
 ServerRoot \"{args.server_root}\"
 Listen 127.0.0.1:18080
@@ -122,7 +124,7 @@ LoadModule unixd_module modules/mod_unixd.so
 LoadModule authz_core_module modules/mod_authz_core.so
 LoadModule proxy_module modules/mod_proxy.so
 LoadModule proxy_http_module modules/mod_proxy_http.so
-ProxyPass / http://127.0.0.1:18181/ retry=0
+ProxyPass / http://127.0.0.1:18181/ retry=0{reuse}
 ProxyPassReverse / http://127.0.0.1:18181/
 """)
             proxy = subprocess.Popen(
@@ -165,6 +167,8 @@ ProxyPassReverse / http://127.0.0.1:18181/
                         print(f"rack_thin_victim_headers={headers_b!r}")
                         print(f"rack_thin_victim_body={body_b!r}")
 
+            mode = "disabled" if args.disablereuse else "enabled"
+            print(f"rack_thin_reuse={mode}")
             print(f"rack_thin_apache_cross_tenant_hits={contaminated}/{args.iterations}")
             print(f"rack_thin_apache_errors={apache_errors}/{args.iterations}")
             print("rack_thin_apache_boundary=observed" if contaminated else "rack_thin_apache_boundary=not_observed")
