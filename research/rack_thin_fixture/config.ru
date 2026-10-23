@@ -62,7 +62,7 @@ app = lambda do |env|
       # A normal small HTML page is enough to test whether attacker bytes can
       # enter a victim document; keeping it short also makes the delayed A
       # tail large enough to cover the complete victim body.
-      "<html><body>" + ("B" * 512) + "VICTIM-OWN</body></html>"
+      "<html><body>" + ("B" * 128) + "VICTIM-OWN</body></html>"
     else
       "VICTIM-OWN"
     end
