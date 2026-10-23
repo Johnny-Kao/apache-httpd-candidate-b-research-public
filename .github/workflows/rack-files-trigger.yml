@@ -33,8 +33,8 @@ jobs:
 
       - name: Install vulnerable Rack and Puma
         run: |
-          gem install --no-document rack -v 3.2.5
-          gem install --no-document puma
+          sudo gem install --no-document rack -v 3.2.5
+          sudo gem install --no-document puma
 
       - name: Build Apache 2.4.69
         run: |
@@ -54,6 +54,6 @@ jobs:
           python3 research/test_rack_files_apache.py \
             --httpd "$RUNNER_TEMP/apache-install-2.4.69/bin/httpd" \
             --server-root "$RUNNER_TEMP/apache-install-2.4.69" \
-            --puma "$(ruby -e 'puts Gem.bindir')/puma" \
+            --puma "$(command -v puma)" \
             --fixture "$GITHUB_WORKSPACE/research/rack_files_fixture" \
             --iterations 100
