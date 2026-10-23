@@ -2,10 +2,11 @@
 """Test the Rack::Files framing bug through real Thin and Apache.
 
 Rack 3.2.5 calculates Rack::Files error Content-Length with String#size.
-The fixture uses a normal Rack streaming body to delay the already-mismatched
-tail. This is intentionally reported as two separate facts: whether a real
-server emits the malformed response, and whether Apache carries its delayed
-tail into an independent victim response.
+The fixture uses Thin's callable streaming-body API to delay the already-
+mismatched tail. The independent victim also delays its fixed body, creating a
+real response-body window. This is intentionally reported as two separate
+facts: whether a real server emits the malformed response, and whether Apache
+carries its delayed tail into the victim response.
 """
 
 from __future__ import annotations

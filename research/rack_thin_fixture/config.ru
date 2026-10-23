@@ -2,6 +2,7 @@
 
 gem "rack", "= 3.2.5"
 require "rack"
+require "eventmachine"
 
 class Utf8PathInfo
   def initialize(app)
@@ -18,20 +19,32 @@ class Utf8PathInfo
   end
 end
 
-class DelayedBody
+class AsyncBody
   def initialize(bytes, declared)
     @bytes = bytes
     @declared = declared
   end
 
-  def each
-    # The application response is already malformed because Rack::Files used
-    # character count for Content-Length. Split a normal streaming body at the
-    # declared boundary and delay only the naturally remaining bytes.
-    yield @bytes.byteslice(0, @declared)
-    sleep 0.25
-    tail = @bytes.byteslice(@declared..)
-    yield tail if tail && !tail.empty?
+  def call(stream)
+    # Thin supports callable streaming bodies. The application response is
+    # already malformed because Rack::Files used character count for
+    # Content-Length. Return control to Thin after the declared bytes and emit
+    # only the naturally remaining bytes later on the event loop.
+    stream << @bytes.byteslice(0, @declared)
+    EventMachine.add_timer(0.25) do
+      tail = @bytes.byteslice(@declared..)
+      stream << tail if tail && !tail.empty?
+      stream.close
+    end
+  end
+end
+
+class DelayedVictimBody
+  def call(stream)
+    EventMachine.add_timer(0.50) do
+      stream << "VICTIM-OWN"
+      stream.close
+    end
   end
 end
 
@@ -42,13 +55,13 @@ app = lambda do |env|
     body = "VICTIM-OWN"
     [200, {"content-type" => "text/plain",
            "content-length" => body.bytesize.to_s,
-           "x-tenant" => "B"}, [body]]
+           "x-tenant" => "B"}, DelayedVictimBody.new]
   else
     status, headers, body = files.call(env)
     if env["PATH_INFO"].start_with?("/missing/")
       bytes = +""
       body.each { |part| bytes << part }
-      [status, headers, DelayedBody.new(bytes, headers.fetch("content-length").to_i)]
+      [status, headers, AsyncBody.new(bytes, headers.fetch("content-length").to_i)]
     else
       [status, headers, body]
     end
