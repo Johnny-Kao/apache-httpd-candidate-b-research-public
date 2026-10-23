@@ -56,13 +56,12 @@ def wait_for_port(port: int, process: subprocess.Popen[str], label: str) -> None
 
 def make_attack_path() -> tuple[str, bytes]:
     html = (
-        b"<!doctype html><html><head><title>B_SAFE</title></head>"
-        b"<body><script>document.title='A_CONTROLLED_CANARY'</script>"
-        b"</body></html>"
+        b"<html><script>document.title='A_CONTROLLED_CANARY'</script></html>"
     )
     # Pick a value whose integer-length boundary admits an exact solution for
-    # the self-referential Content-Length/padding equation below.
-    before = 701
+    # the self-referential Content-Length/padding equation below while keeping
+    # the ordinary request target well below common URI limits.
+    before = 87
     for after in range(before * 2):
         padded_body = html + ("☃" * after).encode()
         marker = (
