@@ -1,0 +1,59 @@
+name: Rack Files response framing trigger
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "research/rack_files_fixture/**"
+      - "research/test_rack_files_apache.py"
+      - ".github/workflows/rack-files-trigger.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rack-files-trigger
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Rack 3.2.5 and Apache 2.4.69
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out research repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake build-essential libapr1-dev \
+            libaprutil1-dev libpcre2-dev libnghttp2-dev libtool libtool-bin \
+            pkg-config ruby ruby-dev
+
+      - name: Install vulnerable Rack and Puma
+        run: |
+          gem install --no-document rack -v 3.2.5
+          gem install --no-document puma
+
+      - name: Build Apache 2.4.69
+        run: |
+          source_dir="$RUNNER_TEMP/httpd-2.4.69"
+          install_dir="$RUNNER_TEMP/apache-install-2.4.69"
+          git clone --depth 1 --branch 2.4.69 \
+            https://github.com/apache/httpd.git "$source_dir"
+          cd "$source_dir"
+          ./buildconf --with-apr=/usr/bin/apr-1-config
+          ./configure --prefix="$install_dir" \
+            --enable-proxy --enable-proxy-http --enable-mods-shared=most
+          make -j2
+          make install
+
+      - name: Test real Rack::Files mismatch through Apache
+        run: |
+          python3 research/test_rack_files_apache.py \
+            --httpd "$RUNNER_TEMP/apache-install-2.4.69/bin/httpd" \
+            --server-root "$RUNNER_TEMP/apache-install-2.4.69" \
+            --puma "$(ruby -e 'puts Gem.bindir')/puma" \
+            --fixture "$GITHUB_WORKSPACE/research/rack_files_fixture" \
+            --iterations 100
