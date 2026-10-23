@@ -120,6 +120,8 @@ ProxyPassReverse / http://127.0.0.1:{backend_port}/
 
             time.sleep(0.15)
             backend_alive = backend.poll() is None
+            backend.terminate()
+            backend.wait(timeout=5)
             backend_log = backend.stderr.read() if backend.stderr else ""
             contaminated = b"ATTACKER-LATE:POISON" in response_b
             print(f"gin_timeout_response_a={response_a!r}")
