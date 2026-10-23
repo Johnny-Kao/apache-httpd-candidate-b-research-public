@@ -40,9 +40,13 @@ class AsyncBody
 end
 
 class DelayedVictimBody
+  def initialize(body)
+    @body = body
+  end
+
   def call(stream)
     EventMachine.add_timer(0.50) do
-      stream << "VICTIM-OWN"
+      stream << @body
       stream.close
     end
   end
@@ -52,11 +56,15 @@ files = Rack::Files.new(ENV.fetch("RACK_FILES_ROOT"))
 
 app = lambda do |env|
   if env["PATH_INFO"] == "/victim"
-    body = "VICTIM-OWN"
+    body = if ENV["RACK_THIN_IMPACT"] == "1"
+      ("B" * 2048) + "VICTIM-OWN"
+    else
+      "VICTIM-OWN"
+    end
     [200, {"content-type" => "text/plain",
            "content-length" => body.bytesize.to_s,
            "x-tenant" => "B"},
-     ENV["RACK_THIN_FAST_VICTIM"] == "1" ? [body] : DelayedVictimBody.new]
+     ENV["RACK_THIN_FAST_VICTIM"] == "1" ? [body] : DelayedVictimBody.new(body)]
   else
     status, headers, body = files.call(env)
     if env["PATH_INFO"].start_with?("/missing/")
