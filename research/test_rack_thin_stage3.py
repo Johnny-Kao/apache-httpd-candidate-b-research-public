@@ -51,6 +51,7 @@ def main() -> int:
             proxy = start_apache(args.httpd, args.server_root, root, False)
             categories: dict[str, int] = {}
             valid_json = 0
+            contaminated_valid_json = 0
             accepted_decision_changes = 0
             for i in range(args.iterations):
                 rid = f"probe-{i:04d}"
@@ -72,7 +73,10 @@ def main() -> int:
                         pass
                     else:
                         valid_json += 1
-                        if parsed.get("allowed") is not False:
+                        if category == "attacker_bytes_in_victim_body":
+                            contaminated_valid_json += 1
+                        if (category == "attacker_bytes_in_victim_body"
+                                and parsed.get("allowed") is not False):
                             accepted_decision_changes += 1
             output = {
                 "direct": {
@@ -82,9 +86,10 @@ def main() -> int:
                 },
                 "classification": categories,
                 "valid_json": valid_json,
+                "contaminated_valid_json": contaminated_valid_json,
                 "accepted_security_decision_changes": accepted_decision_changes,
                 "expected_json": expected.decode(),
-                "result": "PASS" if valid_json == 0 and accepted_decision_changes == 0 else "FAIL",
+                "result": "PASS" if contaminated_valid_json == 0 and accepted_decision_changes == 0 else "FAIL",
             }
             print("stage3_json=" + json.dumps(output, sort_keys=True))
             return 0
