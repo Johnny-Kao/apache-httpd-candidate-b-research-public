@@ -51,6 +51,13 @@ jobs:
             --iterations 100
 
       - name: Stage 1 negative control with reuse disabled
+        env:
+          # Thin's delayed callable body is not a valid control when Apache
+          # deliberately sends Connection: close to the backend: that path
+          # reports a truncated body before the timer callback. Use the same
+          # malformed A response with a normal B response so the control
+          # measures only connection reuse, not the delayed-victim interaction.
+          RACK_THIN_FAST_VICTIM: "1"
         run: |
           python3 research/test_rack_thin_validation.py \
             --httpd "$RUNNER_TEMP/apache-install-2.4.69/bin/httpd" \

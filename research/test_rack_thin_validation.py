@@ -241,33 +241,45 @@ def main() -> int:
             if request_log.exists():
                 backend_text = request_log.read_text()
                 print("backend_requests=" + backend_text)
-                backend_records: dict[str, dict[str, str]] = {}
-                for line in backend_text.splitlines():
+            if (root / "access.log").exists():
+                access_text = (root / "access.log").read_text()
+                print("apache_access_log=" + access_text)
+                # Apache mod_proxy_http records the local source port used
+                # for the backend connection in proxy-source-port.  Thin's
+                # Rack env did not expose a reliable REMOTE_PORT in the
+                # previous classifier, so do not infer socket reuse from the
+                # fixture's peer field.
+                access_records: dict[str, dict[str, str]] = {}
+                for line in access_text.splitlines():
                     fields = dict(item.split("=", 1) for item in line.split()
                                   if "=" in item)
                     if fields.get("rid"):
-                        backend_records[fields["rid"]] = fields
+                        access_records[fields["rid"]] = fields
                 same_peer = 0
                 peer_pairs = 0
                 for i in range(args.iterations):
-                    a = backend_records.get(f"probe-{i:04d}")
-                    b = backend_records.get(f"probe-{i:04d}-victim")
-                    if a and b:
+                    a = access_records.get(f"probe-{i:04d}")
+                    b = access_records.get(f"probe-{i:04d}-victim")
+                    if a and b and a.get("peer") and b.get("peer"):
                         peer_pairs += 1
-                        same_peer += int(a.get("peer") == b.get("peer"))
-                print("backend_peer_correlation=" + json.dumps({
+                        same_peer += int(a["peer"] == b["peer"])
+                print("apache_backend_correlation=" + json.dumps({
                     "pairs": peer_pairs,
-                    "same_peer": same_peer,
+                    "same_backend_source_port": same_peer,
                 }, sort_keys=True))
-            if (root / "access.log").exists():
-                print("apache_access_log=" + (root / "access.log").read_text())
             if (root / "error.log").exists():
                 trace = (root / "error.log").read_text()
                 print("apache_trace_tail=" + trace[-12000:])
             mode = "disabled" if args.disablereuse else "enabled"
             print(f"reuse_mode={mode}")
-            print("result=" + ("PASS" if counts.get("attacker_bytes_in_victim_body", 0)
-                                else "INCONCLUSIVE"))
+            if args.disablereuse:
+                control_categories = set(counts)
+                control_pass = bool(control_categories) and control_categories == {
+                    "clean_victim_response"
+                }
+            else:
+                control_pass = bool(counts.get("attacker_bytes_in_victim_body", 0))
+            print("result=" + ("PASS" if control_pass else "INCONCLUSIVE"))
             return 0
         finally:
             if proxy is not None:
