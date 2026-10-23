@@ -93,12 +93,12 @@ def main() -> int:
             if impact:
                 # Keep a long delayed tail like the core test, but place the
                 # decoded script marker at its beginning. For 80 snowmen
-                # before a 36-byte marker, 124 snowmen after it makes the
+                # before a 36-byte marker, 125 snowmen after it makes the
                 # marker start at the byte offset advertised by Content-Length.
                 path = (
                     "/missing/" + "%E2%98%83" * 80
                     + "%3Cscript%3EA_CONTROLLED_MARKER%3C%2Fscript%3E"
-                    + "%E2%98%83" * 124
+                    + "%E2%98%83" * 125
                 )
             else:
                 path = "/missing/" + "%E2%98%83" * 80 + "A_CONTROLLED_MARKER"
@@ -123,6 +123,10 @@ def main() -> int:
             print(f"rack_thin_direct_mismatch={len(body) + len(extra) > declared}")
             if impact:
                 print(f"rack_thin_direct_tail_prefix={extra[:80]!r}")
+                if not extra.startswith(b"<script>A_CONTROLLED_MARKER</script>"):
+                    raise AssertionError(
+                        "HTML marker is not the first delayed backend byte"
+                    )
             if len(body) + len(extra) <= declared:
                 raise AssertionError("Thin did not emit the expected real mismatch")
 
@@ -136,8 +140,11 @@ ErrorLog \"{root / 'error.log'}\"
 LogLevel proxy_http:trace2
 LoadModule unixd_module modules/mod_unixd.so
 LoadModule authz_core_module modules/mod_authz_core.so
+LoadModule log_config_module modules/mod_log_config.so
 LoadModule proxy_module modules/mod_proxy.so
 LoadModule proxy_http_module modules/mod_proxy_http.so
+LogFormat "host=%{Host}i source=%{proxy-source-port}n status=%>s bytes=%B" reuse
+CustomLog "{root / 'access.log'}" reuse
 ProxyPass / http://127.0.0.1:18181/ retry=0{reuse}
 ProxyPassReverse / http://127.0.0.1:18181/
 """)
@@ -192,6 +199,11 @@ ProxyPassReverse / http://127.0.0.1:18181/
                         print(f"rack_thin_victim_body={body_b!r}")
 
             mode = "disabled" if args.disablereuse else "enabled"
+            access_log = root / "access.log"
+            if access_log.exists():
+                print("rack_thin_apache_access_log_begin")
+                print(access_log.read_text())
+                print("rack_thin_apache_access_log_end")
             print(f"rack_thin_reuse={mode}")
             print(f"rack_thin_apache_cross_tenant_hits={contaminated}/{args.iterations}")
             print(f"rack_thin_apache_errors={apache_errors}/{args.iterations}")
