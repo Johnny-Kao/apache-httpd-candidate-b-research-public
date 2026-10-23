@@ -56,8 +56,21 @@ end
 
 files = Rack::Files.new(ENV.fetch("RACK_FILES_ROOT"))
 
+def probe_log(env, tenant)
+  path = ENV["RACK_THIN_REQUEST_LOG"]
+  return unless path
+
+  rid = env["HTTP_X_PROBE_ID"] || "-"
+  peer = env["REMOTE_PORT"] || "-"
+  path_info = env["PATH_INFO"] || "-"
+  File.open(path, "a") do |log|
+    log.puts("rid=#{rid} tenant=#{tenant} peer=#{peer} path=#{path_info}")
+  end
+end
+
 app = lambda do |env|
   if env["PATH_INFO"] == "/victim"
+    probe_log(env, "B")
     body = if ENV["RACK_THIN_IMPACT"] == "1"
       # A normal small HTML page is enough to test whether attacker bytes can
       # enter a victim document; keeping it short also makes the delayed A
@@ -68,11 +81,17 @@ app = lambda do |env|
     end
     [200, {"content-type" => ENV["RACK_THIN_IMPACT"] == "1" ? "text/html" : "text/plain",
            "content-length" => body.bytesize.to_s,
-           "x-tenant" => "B"},
+           "x-tenant" => "B",
+           "x-probe-id" => env["HTTP_X_PROBE_ID"].to_s,
+           "x-backend-peer" => env["REMOTE_PORT"].to_s},
      ENV["RACK_THIN_FAST_VICTIM"] == "1" ? [body] :
       DelayedVictimBody.new(body, Float(ENV.fetch("RACK_THIN_B_DELAY", "0.50")))]
   else
+    probe_log(env, "A")
     status, headers, body = files.call(env)
+    headers["x-probe-id"] = env["HTTP_X_PROBE_ID"].to_s
+    headers["x-backend-peer"] = env["REMOTE_PORT"].to_s
+    headers["x-tenant"] = "A"
     headers.delete("x-cascade") if ENV["RACK_THIN_STRIP_CASCADE"] == "1"
     if env["PATH_INFO"].start_with?("/missing/")
       bytes = +""
