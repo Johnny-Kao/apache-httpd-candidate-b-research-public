@@ -1,6 +1,6 @@
 # Apache httpd / Rack–Thin response contamination: root-cause reassessment
 
-Date: 2026-10-31. Status: **source-level cause verified; version-controlled end-to-end CI comparison pending**.
+Date: 2026-10-31. Status: **root cause verified end-to-end by successful GitHub Actions CI**.
 
 ## First incorrect state: Rack response framing
 
@@ -36,6 +36,24 @@ Branch `research/release-time-empty-check` added another `ap_proxy_check_connect
 
 The concrete origin error is fixed in upstream Rack 3.2.6 (and newer). Existing supported deployments should upgrade Rack (and ensure any custom streaming body obeys its declared framing). Apache's `disablereuse=On` is a deployment-level mitigation with a keep-alive performance tradeoff, not a general source fix.
 
-The new branch `research/rack-framing-root-cause` compares Rack 3.2.5 and 3.2.6 against **unmodified Apache 2.4.69**, including direct backend tail, cross-request contamination, clean B responses, and negative controls. Run: https://github.com/Johnny-Kao/apache-httpd-candidate-b-research-public/actions/runs/41180822566 . Only CI evidence can establish the end-to-end outcome.
+The new branch `research/rack-framing-root-cause` compares Rack 3.2.5 and 3.2.6 against **unmodified Apache 2.4.69**, including direct backend tail, cross-request contamination, clean B responses, and negative controls. Run: https://github.com/Johnny-Kao/apache-httpd-candidate-b-research-public/actions/runs/41180822566 . The workflow completed successfully with `ROOT_CAUSE_VERIFIED=PASS`.
+
+### Same-runner differential evidence (stock Apache, no httpd source modifications)
+
+| Measurement | Rack 3.2.5 | Rack 3.2.6 |
+| --- | --- | --- |
+| Direct declared Content-Length | 146 | 362 |
+| Direct body read at declared boundary | 146 | 362 |
+| Delayed extra tail | Present | Absent |
+| Strict A-canary-in-B-body contamination | 41/50 | **0/50** |
+| Exact clean B responses | 9/50 | **50/50** |
+| Fast-victim control | 20/20 clean | 20/20 clean |
+| Correct-length control | 20/20 clean | 20/20 clean |
+| Buffered-malformed control | 20/20 clean | 20/20 clean |
+| Separate-backend control | 20/20 clean | 20/20 clean |
+
+The preexisting Stage 2 classifier reports `result: FAIL` for the Rack 3.2.6 shared-async case **because it was designed to expect a reproduction**. The dedicated post-test root-cause assertions explicitly demand a positive 3.2.5 reproduction, zero extra bytes for 3.2.6, all 50 clean B responses, and clean controls; those assertions passed. This distinction avoids mistaking the absence of a bug for a failed fix.
+
+Conclusion: **changing the source of incorrect response framing, not adding an Apache connection check, removes the observed contamination chain**. This does not prove Apache can defend against arbitrary other malformed backend servers.
 
 **Upstream PR decision:** no Apache PR on the release-time check; Rack's initial framing cause is already patched upstream. A separate Apache hardening change would need an independently justified invariant, reproducible regression test, and evidence of acceptable impact on correct backends.
