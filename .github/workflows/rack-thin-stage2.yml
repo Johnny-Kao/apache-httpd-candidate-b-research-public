@@ -34,7 +34,7 @@ jobs:
           install_dir="$RUNNER_TEMP/apache-install-2.4.69"
           git clone --depth 1 --branch 2.4.69 \
             https://github.com/apache/httpd.git "$source_dir"
-          cp "$GITHUB_WORKSPACE/modules/proxy/mod_proxy_http.c" "$source_dir/modules/proxy/mod_proxy_http.c"
+          python3 "$GITHUB_WORKSPACE/research/apply_release_empty_check.py" "$source_dir/modules/proxy/mod_proxy_http.c"
           cd "$source_dir"
           ./buildconf --with-apr=/usr/bin/apr-1-config
           ./configure --prefix="$install_dir" \
