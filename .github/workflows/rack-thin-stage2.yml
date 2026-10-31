@@ -7,19 +7,17 @@ permissions:
   contents: read
 
 concurrency:
-  group: rack-thin-stage2
+  group: rack-framing-root-cause
   cancel-in-progress: true
 
 jobs:
-  isolate:
-    name: Stage 2 prerequisite isolation
+  root-cause:
+    name: Compare vulnerable vs fixed Rack using stock Apache
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 40
     steps:
-      - name: Check out research repository
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
+      - uses: actions/checkout@v4
+      - name: Install build tools and vulnerable Rack
         run: |
           sudo apt-get update
           sudo apt-get install -y autoconf automake build-essential libapr1-dev \
@@ -27,24 +25,71 @@ jobs:
             pkg-config ruby ruby-dev
           sudo gem install --no-document rack -v 3.2.5
           sudo gem install --no-document thin
-
-      - name: Build Apache 2.4.69
+      - name: Build unmodified Apache 2.4.69
         run: |
           source_dir="$RUNNER_TEMP/httpd-2.4.69"
           install_dir="$RUNNER_TEMP/apache-install-2.4.69"
-          git clone --depth 1 --branch 2.4.69 \
-            https://github.com/apache/httpd.git "$source_dir"
+          git clone --depth 1 --branch 2.4.69 https://github.com/apache/httpd.git "$source_dir"
           cd "$source_dir"
           ./buildconf --with-apr=/usr/bin/apr-1-config
-          ./configure --prefix="$install_dir" \
-            --enable-proxy --enable-proxy-http --enable-mods-shared=most
+          ./configure --prefix="$install_dir" --enable-proxy --enable-proxy-http --enable-mods-shared=most
           make -j2
           make install
-
-      - name: Run Stage 2 cases
+      - name: Reproduce old framing bug using Rack 3.2.5
+        env:
+          RACK_VERSION: "3.2.5"
+        run: |
+          mkdir -p "$RUNNER_TEMP/rack-comparison"
+          python3 research/test_rack_thin_stage2.py \
+            --httpd "$RUNNER_TEMP/apache-install-2.4.69/bin/httpd" \
+            --server-root "$RUNNER_TEMP/apache-install-2.4.69" \
+            --thin "$(command -v thin)" \
+            --fixture "$GITHUB_WORKSPACE/research/rack_thin_fixture" \
+            > "$RUNNER_TEMP/rack-comparison/rack-3.2.5.log" 2>&1 || { cat "$RUNNER_TEMP/rack-comparison/rack-3.2.5.log"; exit 1; }
+          grep '^stage2_summary=' "$RUNNER_TEMP/rack-comparison/rack-3.2.5.log"
+      - name: Install fixed Rack 3.2.6
+        run: sudo gem install --no-document rack -v 3.2.6
+      - name: Verify corrected framing using Rack 3.2.6
+        env:
+          RACK_VERSION: "3.2.6"
         run: |
           python3 research/test_rack_thin_stage2.py \
             --httpd "$RUNNER_TEMP/apache-install-2.4.69/bin/httpd" \
             --server-root "$RUNNER_TEMP/apache-install-2.4.69" \
             --thin "$(command -v thin)" \
-            --fixture "$GITHUB_WORKSPACE/research/rack_thin_fixture"
+            --fixture "$GITHUB_WORKSPACE/research/rack_thin_fixture" \
+            > "$RUNNER_TEMP/rack-comparison/rack-3.2.6.log" 2>&1 || { cat "$RUNNER_TEMP/rack-comparison/rack-3.2.6.log"; exit 1; }
+          grep '^stage2_summary=' "$RUNNER_TEMP/rack-comparison/rack-3.2.6.log"
+      - name: Assert framing root cause (not merely workflow success)
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          root = Path(os.environ["RUNNER_TEMP"]) / "rack-comparison"
+          def load(version):
+              data = (root / f"rack-{version}.log").read_text()
+              rows = [json.loads(line[len("case_result="):]) for line in data.splitlines() if line.startswith("case_result=")]
+              return {row["case"]: row for row in rows}
+          old, fixed = load("3.2.5"), load("3.2.6")
+          case = "shared_async_delayed"
+          a, b = old[case], fixed[case]
+          print("Vulnerable direct:", a["direct"])
+          print("Fixed direct:", b["direct"])
+          print("Vulnerable classification:", a["classification"])
+          print("Fixed classification:", b["classification"])
+          assert a["direct"]["tail_present"], "Old Rack did not produce malformed leftover bytes"
+          assert a["classification"].get("attacker_bytes_in_victim_body", 0) > 0, "Original cross-request effect not reproduced: inconclusive"
+          assert not b["direct"]["tail_present"], "Fixed Rack still emitted extra tail"
+          assert b["classification"] == {"clean_victim_response": 50}, "Corrected Rack did not yield 50 clean victim bodies"
+          for name in ("shared_async_fast_victim", "shared_correct_length_delayed", "shared_buffered_malformed_delayed", "separate_backend_async_delayed"):
+              assert fixed[name]["classification"] == {"clean_victim_response": 20}, f"Unexpected fixed Rack control result: {name}"
+          print("ROOT_CAUSE_VERIFIED=PASS")
+          PY
+      - name: Upload comparative logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rack-framing-root-cause
+          path: ${{ runner.temp }}/rack-comparison/
+          if-no-files-found: warn
