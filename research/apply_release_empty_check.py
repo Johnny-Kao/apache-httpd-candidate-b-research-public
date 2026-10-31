@@ -16,6 +16,5 @@ replacement = """                    /* Detect already-pending bytes before pool
                                                         backend, r->server, 1,
                                                         PROXY_CHECK_CONN_EMPTY);
                     }
-                    proxy_run_detach_backend(r, backend);
                     ap_proxy_release_connection("""
 source.write_text(code.replace(anchor, replacement))
