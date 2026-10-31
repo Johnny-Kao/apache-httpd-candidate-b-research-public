@@ -5,8 +5,7 @@ import sys
 
 source = Path(sys.argv[1])
 code = source.read_text()
-anchor = """                    proxy_run_detach_backend(r, backend);
-                    ap_proxy_release_connection("""
+anchor = """                    ap_proxy_release_connection("""
 if code.count(anchor) != 1:
     raise SystemExit(f"Expected one EOS release anchor, found {code.count(anchor)}")
 replacement = """                    /* Detect already-pending bytes before pooling. This check
