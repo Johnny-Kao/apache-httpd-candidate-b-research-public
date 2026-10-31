@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-gem "rack", "= 3.2.5"
+gem "rack", "= #{ENV.fetch("RACK_VERSION", "3.2.5")}"
 require "rack"
 require "eventmachine"
 
