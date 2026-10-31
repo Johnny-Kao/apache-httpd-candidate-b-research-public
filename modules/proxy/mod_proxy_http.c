@@ -1838,6 +1838,15 @@ int ap_proxy_http_process_response(proxy_http_req_t *req)
                      * left waiting for a slow client to eventually
                      * acknowledge the data.
                      */
+                    /* Reject any already-pending bytes before pooling the
+                     * completed backend response. This is opportunistic:
+                     * bytes arriving later still require separate handling.
+                     */
+                    if (!backend->close) {
+                        (void)ap_proxy_check_connection(backend->worker->s->scheme,
+                                                        backend, r->server, 1,
+                                                        PROXY_CHECK_CONN_EMPTY);
+                    }
                     proxy_run_detach_backend(r, backend);
                     ap_proxy_release_connection(backend->worker->s->scheme,
                             backend, r->server);
