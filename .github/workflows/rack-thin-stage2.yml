@@ -7,18 +7,15 @@ permissions:
   contents: read
 
 concurrency:
-  group: rack-thin-stage2
+  group: proxy-reuse-ab-validation
   cancel-in-progress: true
 
 jobs:
-  isolate:
-    name: Stage 2 prerequisite isolation
+  compare:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 40
     steps:
-      - name: Check out research repository
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -27,25 +24,45 @@ jobs:
             pkg-config ruby ruby-dev
           sudo gem install --no-document rack -v 3.2.5
           sudo gem install --no-document thin
-
-      - name: Build Apache 2.4.69
+      - name: Build stock Apache 2.4.69
         run: |
           source_dir="$RUNNER_TEMP/httpd-2.4.69"
           install_dir="$RUNNER_TEMP/apache-install-2.4.69"
-          git clone --depth 1 --branch 2.4.69 \
-            https://github.com/apache/httpd.git "$source_dir"
-          python3 "$GITHUB_WORKSPACE/research/apply_release_empty_check.py" "$source_dir/modules/proxy/mod_proxy_http.c"
+          git clone --depth 1 --branch 2.4.69 https://github.com/apache/httpd.git "$source_dir"
           cd "$source_dir"
           ./buildconf --with-apr=/usr/bin/apr-1-config
-          ./configure --prefix="$install_dir" \
-            --enable-proxy --enable-proxy-http --enable-mods-shared=most
+          ./configure --prefix="$install_dir" --enable-proxy --enable-proxy-http --enable-mods-shared=most
           make -j2
           make install
-
-      - name: Run Stage 2 cases
+      - name: Stage 2 original baseline
         run: |
+          mkdir -p "$RUNNER_TEMP/ab-evidence"
           python3 research/test_rack_thin_stage2.py \
             --httpd "$RUNNER_TEMP/apache-install-2.4.69/bin/httpd" \
             --server-root "$RUNNER_TEMP/apache-install-2.4.69" \
             --thin "$(command -v thin)" \
-            --fixture "$GITHUB_WORKSPACE/research/rack_thin_fixture"
+            --fixture "$GITHUB_WORKSPACE/research/rack_thin_fixture" \
+            > "$RUNNER_TEMP/ab-evidence/baseline.log" 2>&1 || { cat "$RUNNER_TEMP/ab-evidence/baseline.log"; exit 1; }
+          grep 'stage2_summary=' "$RUNNER_TEMP/ab-evidence/baseline.log"
+      - name: Apply patch and rebuild
+        run: |
+          cd "$RUNNER_TEMP/httpd-2.4.69"
+          python3 "$GITHUB_WORKSPACE/research/apply_release_empty_check.py" modules/proxy/mod_proxy_http.c
+          make -j2
+          make install
+      - name: Stage 2 patched candidate
+        run: |
+          python3 "$GITHUB_WORKSPACE/research/test_rack_thin_stage2.py" \
+            --httpd "$RUNNER_TEMP/apache-install-2.4.69/bin/httpd" \
+            --server-root "$RUNNER_TEMP/apache-install-2.4.69" \
+            --thin "$(command -v thin)" \
+            --fixture "$GITHUB_WORKSPACE/research/rack_thin_fixture" \
+            > "$RUNNER_TEMP/ab-evidence/patched.log" 2>&1 || { cat "$RUNNER_TEMP/ab-evidence/patched.log"; exit 1; }
+          grep 'stage2_summary=' "$RUNNER_TEMP/ab-evidence/patched.log"
+      - name: Upload A/B logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: proxy-reuse-ab-evidence
+          path: ${{ runner.temp }}/ab-evidence
+          if-no-files-found: warn
